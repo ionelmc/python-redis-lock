@@ -12,21 +12,24 @@ left_commands = [
     ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
     ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
     ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
+    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
+    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
+    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
+    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
 ]
-right_commands = [
-]
+right_commands = left_commands
 session = ''
 
 if right_commands:
-    session += 'tmux selectp -t 0; tmux splitw -hd -p 35 \"%s\"; ' % right_commands[-1]
+    session += 'tmux selectp -t0;tmux splitw -hd -p35 \"%s\"; ' % right_commands[-1]
 for index, command in enumerate(right_commands[:-1]):
-    session += 'tmux selectp -t 1; tmux splitw -d -p %i \"%s\"; ' % (
+    session += 'tmux selectp -t1;tmux splitw -d -p%i \"%s\"; ' % (
         100 / (len(right_commands) - index),
         command
     )
 
 for index, command in enumerate(left_commands[1:]):
-    session += 'tmux selectp -t 0; tmux splitw -d -p %i \"%s\"; ' % (
+    session += 'tmux selectp -t0;tmux splitw -d -p%i \"%s\"; ' % (
         100 / (len(left_commands) - index),
         command
     )
