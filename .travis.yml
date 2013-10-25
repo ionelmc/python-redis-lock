@@ -1,0 +1,57 @@
+language: python
+
+python:
+  - "2.7"
+  - "2.6"
+  - "3.2"
+  - "3.3"
+  - "pypy"
+
+env:
+  global:
+    PYTHONPATH=src:tests
+    PYTHONUNBUFFERED=yes
+  matrix:
+    - WITH_COVERAGE=no
+    - WITH_COVERAGE=yes
+    
+before_install:
+  - |
+    if python --version |& grep PyPy; then
+      deactivate
+      (
+        cd ~
+        wget "https://bitbucket.org/pypy/pypy/downloads/pypy-2.1-linux64.tar.bz2"
+        tar -xf pypy-2.1-linux64.tar.bz2
+        sudo rm -rf ~/virtualenv/pypy
+        virtualenv --python=pypy-2.1/bin/pypy ~/virtualenv/pypy
+      )
+      source ~/virtualenv/pypy/bin/activate
+    fi
+    python --version
+    #sudo apt-get install strace
+    
+ 
+install: 
+  - if [[ $WITH_COVERAGE == yes ]]; then pip install coverage coveralls; fi
+
+script: 
+  - python --version
+  - rm .coverage* || true
+  - stat /lib/x86_64-linux-gnu/libgcc_s.so.1
+  #- export LOG_NAME="$TRAVIS_PYTHON_VERSION-$TRAVIS_JOB_NUMBER-$TRAVIS_BUILD_ID.log"
+  - |
+    if [[ $WITH_COVERAGE == yes ]]; then
+      #strace -f -s 8000 -o "$LOG_NAME"
+      coverage run --source=src --parallel-mode tests/test_redis_lock.py -v;
+    else
+      #strace -f -s 8000 -o "$LOG_NAME"
+      python tests/test_redis_lock.py -v;
+    fi
+
+#after_failure:
+#  - curl -i -F "upfile=@$LOG_NAME" http://hostname/droopy/
+after_success:
+  - coverage combine || true
+  - coverage report --show-missing --include='src/*' || true
+  - coveralls || true

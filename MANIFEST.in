@@ -1,0 +1,7 @@
+include README.rst
+include LICENSE
+include README
+include tox.ini
+recursive-include tests *
+recursive-include docs *
+global-exclude *.pyc *.pyo
