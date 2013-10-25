@@ -27,7 +27,7 @@ class Lock(object):
         self._signal = 'lock-signal:'+name
 
     def __enter__(self, blocking=True):
-        logging.debug("Getting %r ...", self._name)
+        logger.debug("Getting %r ...", self._name)
 
         if self._tok is None:
             self._tok = urandom(16) if self._expire else 1
@@ -41,10 +41,10 @@ class Lock(object):
                 if blocking:
                     self._client.blpop(self._signal, self._expire or 0)
                 else:
-                    logging.debug("Failed to get %r.", self._name)
+                    logger.debug("Failed to get %r.", self._name)
                     return False
 
-        logging.debug("Got lock for %r.", self._name)
+        logger.debug("Got lock for %r.", self._name)
 
         self._client.delete(self._signal)
         return True
@@ -52,11 +52,11 @@ class Lock(object):
 
 
     def __exit__(self, exc_type=None, exc_value=None, traceback=None):
-        logging.debug("Releasing %r.", self._name)
+        logger.debug("Releasing %r.", self._name)
         try:
             self._client.evalsha(UNLOCK_SCRIPT_HASH, 2, self._name, self._signal, self._tok)
         except NoScriptError:
-            logging.warn("UNLOCK_SCRIPT not cached.")
+            logger.warn("UNLOCK_SCRIPT not cached.")
             self._client.eval(UNLOCK_SCRIPT, 2, self._name, self._signal, self._tok)
     release = __exit__
 
