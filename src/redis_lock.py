@@ -60,26 +60,6 @@ class Lock(object):
             self._client.eval(UNLOCK_SCRIPT, 2, self._name, self._signal, self._tok)
     release = __exit__
 
-def lock(conn, name):
-    name_ready = name + ":ready"
-    logging.debug("Getting lock for %r ...", name)
-    busy = True
-    while busy:
-        busy = not conn.set(name, "X", nx=True)
-        if busy:
-            conn.blpop(name_ready, 0)
-    logging.debug("Got lock for %r.", name)
-    conn.delete(name_ready)
-    try:
-        yield
-    finally:
-        logging.debug("Removing lock for %r.", name)
-        try:
-            print conn.evalsha(UNLOCK_SCRIPT_HASH, 2, name, name_ready)
-        except NoScriptError:
-            logging.warn("UNLOCK_SCRIPT not cached.")
-            print conn.eval(UNLOCK_SCRIPT, 2, name, name_ready)
-
 
 if __name__ == '__main__':
     import sys
