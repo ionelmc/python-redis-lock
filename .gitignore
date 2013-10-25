@@ -1,1 +1,6 @@
 .redisboard.*
+*.pyc
+.tox
+.coverage*
+*.egg-info
+dist/
