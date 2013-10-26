@@ -2,13 +2,13 @@
     python-redis-lock
 =========================
 
-.. image:: https://secure.travis-ci.org/ionelmc/python-python-redis-lock.png?branch=master
+.. image:: https://secure.travis-ci.org/ionelmc/python-redis-lock.png?branch=master
     :alt: Build Status
-    :target: http://travis-ci.org/ionelmc/python-python-redis-lock
+    :target: http://travis-ci.org/ionelmc/python-redis-lock
 
-.. image:: https://coveralls.io/repos/ionelmc/python-python-redis-lock/badge.png?branch=master
+.. image:: https://coveralls.io/repos/ionelmc/python-redis-lock/badge.png?branch=master
     :alt: Coverage Status
-    :target: https://coveralls.io/r/ionelmc/python-python-redis-lock
+    :target: https://coveralls.io/r/ionelmc/python-redis-lock
 
 .. image:: https://pypip.in/d/python-redis-lock/badge.png
     :alt: PYPI Package
@@ -50,7 +50,7 @@ Features
 Implementation
 ==============
 
-``redis_lock`` will use 2 keys for each lock named ``<name>``: 
+``redis_lock`` will use 2 keys for each lock named ``<name>``:
 
 * ``lock:<name>`` - a string value for the actual lock
 * ``lock-signal:<name>`` - a list value for signaling the waiters when the lock is released
