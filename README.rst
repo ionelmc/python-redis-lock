@@ -60,21 +60,17 @@ This is how it works:
 .. image:: https://raw.github.com/ionelmc/python-redis-lock/master/docs/redis-lock%20diagram.png
     :alt: python-redis-lock flow diagram
 
-
-
 TODO
 ====
 
-* tests
-* tests
-* tests
+* ???
 
 Requirements
 ============
 
 Redis 2.6 or later.
 
-Python 2.6, 2.7, 3.2, 3.3 and PyPy are ?????.
+Python 2.6, 2.7, 3.2, 3.3 and PyPy are supported.
 
 Similar projects
 ================

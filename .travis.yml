@@ -29,10 +29,12 @@ before_install:
       source ~/virtualenv/pypy/bin/activate
     fi
     python --version
+    redis-server --version
     #sudo apt-get install strace
     
  
-install: 
+install:
+  - pip install process-tests
   - if [[ $WITH_COVERAGE == yes ]]; then pip install coverage coveralls; fi
 
 script: 
