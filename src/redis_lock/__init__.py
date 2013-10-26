@@ -21,7 +21,7 @@ UNLOCK_SCRIPT_HASH = sha1(UNLOCK_SCRIPT).hexdigest()
 class Lock(object):
     def __init__(self, redis_client, name, expire=None):
         self._client = redis_client
-        self._expire = expire
+        self._expire = expire if expire is None else int(expire)
         self._tok = None
         self._name = 'lock:'+name
         self._signal = 'lock-signal:'+name
