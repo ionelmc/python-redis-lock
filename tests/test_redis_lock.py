@@ -66,7 +66,7 @@ class RedisLockTestCase(ProcessTestCase):
                     )
         lock = Lock(conn, "foobar")
         try:
-            self.assertEquals(lock.acquire(blocking=False), True)
+            self.assertEqual(lock.acquire(blocking=False), True)
         finally:
             lock.release()
 
@@ -102,7 +102,7 @@ class RedisLockTestCase(ProcessTestCase):
                     if 'Releasing' in junk:
                         events[pid].pid = pid
                         events[pid].end = time
-                self.assertEquals(len(events), 125)
+                self.assertEqual(len(events), 125)
 
                 for event in events.values():
                     for other in events.values():
