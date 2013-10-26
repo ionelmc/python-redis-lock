@@ -5,7 +5,7 @@ import os
 
 setup(
     name = "python-redis-lock",
-    version = "0.1.0",
+    version = "0.1.1",
     url = 'https://github.com/ionelmc/python-redis-lock',
     download_url = '',
     license = 'BSD',
@@ -13,8 +13,8 @@ setup(
     long_description = open(os.path.join(os.path.dirname(__file__), 'README.rst')).read(),
     author = 'Ionel Cristian Mărieș',
     author_email = 'contact@ionelmc.ro',
+    packages = find_packages('src'),
     package_dir = {'':'src'},
-    py_modules = ['redis_lock'],
     include_package_data = True,
     zip_safe = False,
     classifiers = [
