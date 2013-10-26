@@ -143,31 +143,30 @@ if __name__ == '__main__':
             with Lock(conn, "foobar", expire=TIMEOUT/4):
                 time.sleep(0.1)
         elif test_name == 'test_no_overlap':
-            for i in range(1, 6):
-                from sched import scheduler
-                sched = scheduler(time.time, time.sleep)
-                start = time.time() + TIMEOUT/3
-                # the idea is to start all the lock at the same time - we use the scheduler to start everything in TIMEOUT/2 seconds, by
-                # that time all the forks should be ready
+            from sched import scheduler
+            sched = scheduler(time.time, time.sleep)
+            start = time.time() + TIMEOUT/2
+            # the idea is to start all the lock at the same time - we use the scheduler to start everything in TIMEOUT/2 seconds, by
+            # that time all the forks should be ready
 
-                def cb_no_overlap():
-                    with Lock(conn, "foobar"):
-                        time.sleep(0.005 * i)
-                sched.enterabs(start, 0, cb_no_overlap, ())
-                pids = []
+            def cb_no_overlap():
+                with Lock(conn, "foobar"):
+                    time.sleep(0.001)
+            sched.enterabs(start, 0, cb_no_overlap, ())
+            pids = []
 
-                for _ in range(25):
-                    pid = os.fork()
-                    if pid:
-                        pids.append(pid)
-                    else:
-                        try:
-                            conn = StrictRedis(unix_socket_path=UDS_PATH)
-                            sched.run()
-                        finally:
-                            os._exit(0)
-                for pid in pids:
-                    os.waitpid(pid, 0)
+            for _ in range(125):
+                pid = os.fork()
+                if pid:
+                    pids.append(pid)
+                else:
+                    try:
+                        conn = StrictRedis(unix_socket_path=UDS_PATH)
+                        sched.run()
+                    finally:
+                        os._exit(0)
+            for pid in pids:
+                os.waitpid(pid, 0)
         else:
             raise RuntimeError('Invalid test spec %r.' % test_name)
         logging.info('DIED.')
