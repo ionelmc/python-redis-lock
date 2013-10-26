@@ -20,7 +20,7 @@
 
 Lock context manager implemented via redis SETNX/BLPOP.
 
-Interface targeted to be exactly like `threading.Lock <docs.python.org/2/library/threading.html#threading.Lock>`_.
+Interface targeted to be exactly like `threading.Lock <http://docs.python.org/2/library/threading.html#threading.Lock>`_.
 
 Usage
 =====
