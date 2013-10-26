@@ -7,7 +7,7 @@ from contextlib import contextmanager
 from redis import StrictRedis
 from redis.exceptions import NoScriptError
 
-UNLOCK_SCRIPT = """
+UNLOCK_SCRIPT = b"""
     if redis.call("get", KEYS[1]) == ARGV[1] then
         redis.call("lpush", KEYS[2], 1)
         return redis.call("del", KEYS[1])
