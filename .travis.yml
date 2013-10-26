@@ -36,6 +36,7 @@ before_install:
 install:
   - pip install process-tests
   - if [[ $WITH_COVERAGE == yes ]]; then pip install coverage coveralls; fi
+  - python setup.py develop
 
 script: 
   - python --version
