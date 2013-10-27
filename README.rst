@@ -39,6 +39,51 @@ Eg::
         print("Got the lock.")
     else:
         print("Someone else has the lock.")
+        
+Avoid dogpile effect in django
+------------------------------
+
+The dogpile is also known as the thundering herd effect or cache stampede. Here's a pattern to avoid the problem 
+without serving stale data. The work will be performed a single time and every client will wait for the fresh data.
+
+To use this you will need `django-redis <https://github.com/niwibe/django-redis>`_, however, ``python-redis-lock`` 
+provides you a cache backend that has a cache method for your convenience. Just install ``python-redis-lock`` like this::
+
+    pip install "python-redis-lock[django]"
+    
+Now put something like this in your settings::
+
+    CACHES = {
+        'default': {
+            'BACKEND': 'redis_lock.django_cache.RedisCache',
+            'LOCATION': '127.0.0.1:6379',
+            'OPTIONS': {
+                'DB': 1
+            }
+        }
+    }
+    
+This backend just adds a convenient ``.lock(name, expire=None)`` function to django-redis's cache backend.
+
+You would write your functions like this::
+
+    from django.core.cache import cache
+    
+    def function():
+        val = cache.get(key)
+        if val:
+            return val
+        else:
+            with cache.lock(key):
+                val = cache.get(key)
+                if val:
+                    return val
+                else:
+                    # DO EXPENSIVE WORK
+                    val = ...
+                    
+                    cache.set(key, value)
+                    return val
 
 Features
 ========
