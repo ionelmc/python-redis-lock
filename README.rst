@@ -125,3 +125,9 @@ Similar projects
 * `cezarsa/redis_lock <https://github.com/cezarsa/redis_lock/blob/master/redis_lock/__init__.py>`_ - acquire does not block
 * `andymccurdy/redis-py <https://github.com/andymccurdy/redis-py/blob/master/redis/client.py#L2167>`_ - acquire does spinloop
 * `mpessas/python-redis-lock <https://github.com/mpessas/python-redis-lock/blob/master/redislock/lock.py>`_ - blocks fine but no expiration
+
+
+.. image:: https://d2weczhvl823v0.cloudfront.net/ionelmc/python-redis-lock/trend.png
+   :alt: Bitdeli badge
+   :target: https://bitdeli.com/free
+
