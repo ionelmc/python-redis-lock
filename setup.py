@@ -32,7 +32,7 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy',
     ],
     install_requires=[
-        'redis>=2.8.0',
+        'redis>=2.7.4',
     ],
     extras_require={
         'django': [
