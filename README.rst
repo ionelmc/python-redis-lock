@@ -113,7 +113,7 @@ TODO
 Requirements
 ============
 
-Redis 2.6 or later.
+Redis 2.6.12 or later.
 
 Python 2.6, 2.7, 3.2, 3.3 and PyPy are supported.
 
