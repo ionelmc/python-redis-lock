@@ -5,7 +5,7 @@ import os
 
 setup(
     name = "python-redis-lock",
-    version = "0.1.1",
+    version = "0.1.2",
     url = 'https://github.com/ionelmc/python-redis-lock',
     download_url = '',
     license = 'BSD',
