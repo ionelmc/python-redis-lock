@@ -45,8 +45,6 @@ class Lock(object):
                     return False
 
         logger.debug("Got lock for %r.", self._name)
-
-        self._client.delete(self._signal)
         return True
     acquire = __enter__
 
