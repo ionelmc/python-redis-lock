@@ -4,4 +4,4 @@ from redis_lock import Lock
 
 class RedisCache(PlainRedisCache):
     def lock(self, key, expire=None):
-        return Lock(self.client, key, expire=expire)
+        return Lock(self.client.client, key, expire=expire)
