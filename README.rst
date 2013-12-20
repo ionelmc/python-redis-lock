@@ -10,11 +10,7 @@
     :alt: Coverage Status
     :target: https://coveralls.io/r/ionelmc/python-redis-lock
 
-.. image:: https://pypip.in/d/python-redis-lock/badge.png
-    :alt: PYPI Package
-    :target: https://pypi.python.org/pypi/python-redis-lock
-
-.. image:: https://pypip.in/v/python-redis-lock/badge.png
+.. image:: https://badge.fury.io/py/python-redis-lock.png
     :alt: PYPI Package
     :target: https://pypi.python.org/pypi/python-redis-lock
 
