@@ -1,6 +1,12 @@
-.redisboard.*
+.DS_Store
 *.pyc
-.tox
-.coverage*
-*.egg-info
+*~
+.*.sw[po]
 dist/
+*.egg-info
+build/
+.build/
+pip-log.txt
+.tox/
+.coverage*
+.ve/
