@@ -35,18 +35,18 @@ Eg::
         print("Got the lock.")
     else:
         print("Someone else has the lock.")
-        
+
 Avoid dogpile effect in django
 ------------------------------
 
-The dogpile is also known as the thundering herd effect or cache stampede. Here's a pattern to avoid the problem 
+The dogpile is also known as the thundering herd effect or cache stampede. Here's a pattern to avoid the problem
 without serving stale data. The work will be performed a single time and every client will wait for the fresh data.
 
-To use this you will need `django-redis <https://github.com/niwibe/django-redis>`_, however, ``python-redis-lock`` 
+To use this you will need `django-redis <https://github.com/niwibe/django-redis>`_, however, ``python-redis-lock``
 provides you a cache backend that has a cache method for your convenience. Just install ``python-redis-lock`` like this::
 
     pip install "python-redis-lock[django]"
-    
+
 Now put something like this in your settings::
 
     CACHES = {
@@ -58,13 +58,13 @@ Now put something like this in your settings::
             }
         }
     }
-    
+
 This backend just adds a convenient ``.lock(name, expire=None)`` function to django-redis's cache backend.
 
 You would write your functions like this::
 
     from django.core.cache import cache
-    
+
     def function():
         val = cache.get(key)
         if val:
@@ -77,7 +77,7 @@ You would write your functions like this::
                 else:
                     # DO EXPENSIVE WORK
                     val = ...
-                    
+
                     cache.set(key, value)
                     return val
 
@@ -109,9 +109,9 @@ TODO
 Requirements
 ============
 
-Redis 2.6.12 or later.
-
-Python 2.6, 2.7, 3.2, 3.3 and PyPy are supported.
+:OS: Any
+:Runtime: Python 2.6, 2.7, 3.2, 3.3 or PyPy
+:Services: Redis 2.6.12 or later.
 
 Similar projects
 ================
@@ -121,9 +121,3 @@ Similar projects
 * `cezarsa/redis_lock <https://github.com/cezarsa/redis_lock/blob/master/redis_lock/__init__.py>`_ - acquire does not block
 * `andymccurdy/redis-py <https://github.com/andymccurdy/redis-py/blob/master/redis/client.py#L2167>`_ - acquire does spinloop
 * `mpessas/python-redis-lock <https://github.com/mpessas/python-redis-lock/blob/master/redislock/lock.py>`_ - blocks fine but no expiration
-
-
-.. image:: https://d2weczhvl823v0.cloudfront.net/ionelmc/python-redis-lock/trend.png
-   :alt: Bitdeli badge
-   :target: https://bitdeli.com/free
-
