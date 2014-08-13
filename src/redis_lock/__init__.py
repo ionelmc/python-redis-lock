@@ -57,3 +57,12 @@ class Lock(object):
             logger.warn("UNLOCK_SCRIPT not cached.")
             self._client.eval(UNLOCK_SCRIPT, 2, self._name, self._signal, self._tok)
     release = __exit__
+
+def unlock_all(redis_client):
+    """
+    Deletes all locks if its remains (like a crash reason).
+    """
+    for lock_key in redis_client.keys('lock:*'):
+        redis_client.delete(lock_key)
+    for lock_key in redis_client.keys('lock-signal:*'):
+        redis_client.delete(lock_key)

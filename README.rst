@@ -120,6 +120,17 @@ You would write your functions like this::
                     cache.set(key, value)
                     return val
 
+
+Troubleshooting
+------------------------------
+
+In some cases, the lock remains in redis forever (like a server blackout / redis or application crash / an unhandled exception). In such cases, the lock is not removed by restarting the application. One solution is to use the ``unlock_all()`` function when the application starts::
+
+    # On application start/restart
+    import redis_lock
+    redis_lock.unlock_all()
+
+
 Features
 ========
 
