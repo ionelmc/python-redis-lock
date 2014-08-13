@@ -124,12 +124,14 @@ You would write your functions like this::
 Troubleshooting
 ------------------------------
 
-In some cases, the lock remains in redis forever (like a server blackout / redis or application crash / an unhandled exception). In such cases, the lock is not removed by restarting the application. One solution is to use the ``unlock_all()`` function when the application starts::
+In some cases, the lock remains in redis forever (like a server blackout / redis or application crash / an unhandled exception). In such cases, the lock is not removed by restarting the application. One solution is to use the ``reset()`` function when the application starts::
 
     # On application start/restart
     import redis_lock
-    redis_lock.unlock_all()
+    redis_lock.reset()
 
+
+Use it carefully if you understand what you do.
 
 Features
 ========
