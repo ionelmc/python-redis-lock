@@ -24,12 +24,9 @@ def redis_server(scope='module'):
         os.unlink(UDS_PATH)
     except OSError:
         pass
-    redis_server = TestProcess('redis-server', '--port', '0', '--unixsocket', UDS_PATH)
-    try:
+    with TestProcess('redis-server', '--port', '0', '--unixsocket', UDS_PATH) as redis_server:
         wait_for_strings(redis_server.read, TIMEOUT, "Running")
         yield redis_server
-    finally:
-        redis_server.close()
 
 
 def test_simple(redis_server):
