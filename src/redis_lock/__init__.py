@@ -36,7 +36,7 @@ class Lock(object):
 
         busy = True
         while busy:
-            busy = not self._client.set(self._name, self._tok, nx=True, ex=self._expire)
+            busy = not self._client.set(self._name, self._tok, nx=True, timeout=self._expire)
             if busy:
                 if blocking:
                     self._client.blpop(self._signal, self._expire or 0)
