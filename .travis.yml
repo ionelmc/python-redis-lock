@@ -1,62 +1,32 @@
 language: python
-
-python:
-  - "2.7"
-  - "2.6"
-  - "3.2"
-  - "3.3"
-  - "3.4"
-  - "pypy"
-  - "pypy3"
-
+python: 2.7
 env:
   global:
-    PYTHONPATH=src:tests
-    PYTHONUNBUFFERED=yes
+    LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
   matrix:
-    - WITH_COVERAGE=no
-    - WITH_COVERAGE=yes
-    
+    - TOXENV=check
+    - TOXENV=2.6,coveralls
+    - TOXENV=2.6-nocover
+    - TOXENV=2.7,coveralls
+    - TOXENV=2.7-nocover
+    - TOXENV=3.3,coveralls
+    - TOXENV=3.3-nocover
+    - TOXENV=3.4,coveralls
+    - TOXENV=3.4-nocover
+    - TOXENV=pypy,coveralls
+    - TOXENV=pypy-nocover
 before_install:
-  - |
-    if python --version |& grep PyPy; then
-      deactivate
-      (
-        cd ~
-        wget "https://bitbucket.org/pypy/pypy/downloads/pypy-2.1-linux64.tar.bz2"
-        tar -xf pypy-2.1-linux64.tar.bz2
-        sudo rm -rf ~/virtualenv/pypy
-        virtualenv --python=pypy-2.1/bin/pypy ~/virtualenv/pypy
-      )
-      source ~/virtualenv/pypy/bin/activate
-    fi
-    python --version
-    redis-server --version
-    #sudo apt-get install strace
-    
- 
-install:
-  - pip install process-tests
-  - if [[ $WITH_COVERAGE == yes ]]; then pip install coverage coveralls; fi
-  - python setup.py develop
-
-script: 
   - python --version
-  - rm .coverage* || true
-  - stat /lib/x86_64-linux-gnu/libgcc_s.so.1
-  #- export LOG_NAME="$TRAVIS_PYTHON_VERSION-$TRAVIS_JOB_NUMBER-$TRAVIS_BUILD_ID.log"
-  - |
-    if [[ $WITH_COVERAGE == yes ]]; then
-      #strace -f -s 8000 -o "$LOG_NAME"
-      coverage run --source=src --parallel-mode tests/test_redis_lock.py -v;
-    else
-      #strace -f -s 8000 -o "$LOG_NAME"
-      python tests/test_redis_lock.py -v;
-    fi
+  - virtualenv --version
+  - pip --version
+  - uname -a
+  - lsb_release -a
+install:
+  - pip install tox
+script:
+  - tox -v
+notifications:
+  email:
+    on_success: never
+    on_failure: always
 
-#after_failure:
-#  - curl -i -F "upfile=@$LOG_NAME" http://hostname/droopy/
-after_success:
-  - coverage combine || true
-  - coverage report --show-missing --include='src/*' || true
-  - coveralls || true
