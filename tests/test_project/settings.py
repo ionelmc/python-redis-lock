@@ -70,9 +70,11 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 CACHES = {
-    'default': {
-        'BACKEND': 'uwsgicache.UWSGICache',
-        'LOCATION': 'foobar'
+    "default": {
+        "BACKEND": "redis_lock.django_cache.RedisCache",
+        "LOCATION": "127.0.0.1:6379:1",
+        "OPTIONS": {
+            "CLIENT_CLASS": "redis_cache.client.DefaultClient",
+        }
     }
 }
-UWSGI_CACHE_FALLBACK = os.getenv('UWSGI_CACHE_FALLBACK', False)
