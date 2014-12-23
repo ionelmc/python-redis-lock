@@ -1,6 +1,5 @@
 import os
 
-
 import pytest
 from process_tests import TestProcess
 from process_tests import wait_for_strings
