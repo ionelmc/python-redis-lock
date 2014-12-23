@@ -8,6 +8,7 @@ Changelog
 * Fix Django integration. (reportd by Jardel Weyrich)
 * Reorganize tests to use py.test.
 * Add test for Django integration.
+* Add *reset* functionality (contributed by Yokotoka)
 
 0.1.2 (2013-11-05)
 -----------------------------------------
