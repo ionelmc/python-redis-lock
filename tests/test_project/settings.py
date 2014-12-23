@@ -69,10 +69,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+from conf import UDS_PATH
+
 CACHES = {
     "default": {
         "BACKEND": "redis_lock.django_cache.RedisCache",
-        "LOCATION": "127.0.0.1:6379:1",
+        "LOCATION": UDS_PATH,
         "OPTIONS": {
             "CLIENT_CLASS": "redis_cache.client.DefaultClient",
         }

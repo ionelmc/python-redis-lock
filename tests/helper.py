@@ -10,9 +10,9 @@ from redis import StrictRedis
 
 from redis_lock import Lock
 
+from conf import TIMEOUT
+from conf import UDS_PATH
 
-TIMEOUT = int(os.getenv('REDIS_LOCK_TEST_TIMEOUT', 10))
-UDS_PATH = '/tmp/redis-lock-tests.sock'
 
 if __name__ == '__main__':
     logging.basicConfig(

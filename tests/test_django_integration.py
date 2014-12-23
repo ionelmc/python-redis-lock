@@ -1,11 +1,11 @@
 from django.core.cache import cache
 
 
-def test_django_works():
+def test_django_works(redis_server):
     with cache.lock('whateva'):
         pass
 
-def test_reset_all():
+def test_reset_all(redis_server):
     lock1 = cache.lock("foobar1")
     lock2 = cache.lock("foobar2")
     lock1.acquire(blocking=False)

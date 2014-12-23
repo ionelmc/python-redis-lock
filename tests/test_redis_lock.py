@@ -14,10 +14,9 @@ from redis import StrictRedis
 from redis_lock import Lock
 from redis_lock import reset_all
 
-
-TIMEOUT = int(os.getenv('REDIS_LOCK_TEST_TIMEOUT', 10))
-UDS_PATH = '/tmp/redis-lock-tests.sock'
-HELPER = os.path.join(os.path.dirname(__file__), 'helper.py')
+from conf import TIMEOUT
+from conf import UDS_PATH
+from conf import HELPER
 
 
 @pytest.yield_fixture
