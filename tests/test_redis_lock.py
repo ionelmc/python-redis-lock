@@ -30,7 +30,7 @@ def redis_server(scope='module'):
 
 
 def test_simple(redis_server):
-    with TestProcess(sys.executable, __file__, 'daemon', 'test_simple') as proc:
+    with TestProcess(sys.executable, HELPER, 'test_simple') as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
             wait_for_strings(proc.read, TIMEOUT,
@@ -44,7 +44,7 @@ def test_simple(redis_server):
 
 def test_no_block(redis_server):
     with Lock(StrictRedis(unix_socket_path=UDS_PATH), "foobar"):
-        with TestProcess(sys.executable, __file__, 'daemon', 'test_no_block') as proc:
+        with TestProcess(sys.executable, HELPER, 'test_no_block') as proc:
             with dump_on_error(proc.read):
                 name = 'lock:foobar'
                 wait_for_strings(proc.read, TIMEOUT,
@@ -58,7 +58,7 @@ def test_no_block(redis_server):
 def test_expire(redis_server):
     conn = StrictRedis(unix_socket_path=UDS_PATH)
     with Lock(conn, "foobar", expire=TIMEOUT/4):
-        with TestProcess(sys.executable, __file__, 'daemon', 'test_expire') as proc:
+        with TestProcess(sys.executable, HELPER, 'test_expire') as proc:
             with dump_on_error(proc.read):
                 name = 'lock:foobar'
                 wait_for_strings(proc.read, TIMEOUT,
@@ -87,7 +87,7 @@ def test_plain(redis_server):
 
 
 def test_no_overlap(redis_server):
-    with TestProcess(sys.executable, __file__, 'daemon', 'test_no_overlap') as proc:
+    with TestProcess(sys.executable, HELPER, 'test_no_overlap') as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
             wait_for_strings(proc.read, TIMEOUT, 'Getting %r ...' % name)
@@ -121,5 +121,3 @@ def test_no_overlap(redis_server):
                         except:
                             print("[%s/%s]" % (event, other))
                             raise
-
-
