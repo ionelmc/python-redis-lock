@@ -1,3 +1,16 @@
+from __future__ import print_function
+
+import logging
+import os
+import sys
+import time
+
+from process_tests import setup_coverage
+from redis import StrictRedis
+
+from redis_lock import Lock
+
+
 TIMEOUT = int(os.getenv('REDIS_LOCK_TEST_TIMEOUT', 10))
 UDS_PATH = '/tmp/redis-lock-tests.sock'
 

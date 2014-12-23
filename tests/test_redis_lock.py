@@ -1,15 +1,15 @@
 from __future__ import print_function
 
-import unittest
 import os
 import sys
 import time
-import logging
 from collections import defaultdict
 
-from process_tests import TestProcess, setup_coverage, dump_on_error, wait_for_strings
-from redis import StrictRedis
 import pytest
+from process_tests import dump_on_error
+from process_tests import TestProcess
+from process_tests import wait_for_strings
+from redis import StrictRedis
 
 from redis_lock import Lock
 
