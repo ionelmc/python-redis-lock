@@ -49,18 +49,17 @@ redis-lock
     :alt: Scrtinizer Status
     :target: https://scrutinizer-ci.com/g/ionelmc/python-redis-lock/
 
-An example package. Replace this with a proper project description. Generated with https://github.com/ionelmc/cookiecutter-pylibrary
+Lock context manager implemented via redis SETNX/BLPOP.
 
 * Free software: BSD license
-
-Lock context manager implemented via redis SETNX/BLPOP.
 
 Interface targeted to be exactly like `threading.Lock <http://docs.python.org/2/library/threading.html#threading.Lock>`_.
 
 Usage
 =====
 
-Because we don't want to require users to share the lock instance across processes you will have to give them names. Eg::
+Because we don't want to require users to share the lock instance across processes you will have to give them names.
+Eg::
 
     conn = StrictRedis()
     with redis_lock.Lock(conn, "name-of-the-lock"):
@@ -82,7 +81,8 @@ The dogpile is also known as the thundering herd effect or cache stampede. Here'
 without serving stale data. The work will be performed a single time and every client will wait for the fresh data.
 
 To use this you will need `django-redis <https://github.com/niwibe/django-redis>`_, however, ``python-redis-lock``
-provides you a cache backend that has a cache method for your convenience. Just install ``python-redis-lock`` like this::
+provides you a cache backend that has a cache method for your convenience. Just install ``python-redis-lock`` like
+this::
 
     pip install "python-redis-lock[django]"
 
@@ -124,14 +124,18 @@ You would write your functions like this::
 Troubleshooting
 ------------------------------
 
-In some cases, the lock remains in redis forever (like a server blackout / redis or application crash / an unhandled exception). In such cases, the lock is not removed by restarting the application. One solution is to use the ``reset()`` function when the application starts::
+In some cases, the lock remains in redis forever (like a server blackout / redis or application crash / an unhandled
+exception). In such cases, the lock is not removed by restarting the application. One solution is to use the
+``reset_all()`` function when the application starts::
 
     # On application start/restart
     import redis_lock
-    redis_lock.reset()
+    redis_lock.reset_all()
 
+Alternativelly, you can reset individual locks via the ``reset`` method.
 
-Use it carefully if you understand what you do.
+Use these carefully, if you understand what you do.
+
 
 Features
 ========
