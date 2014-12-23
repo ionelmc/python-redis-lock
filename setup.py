@@ -58,11 +58,11 @@ setup(
         # eg: "keyword1", "keyword2", "keyword3",
     ],
     install_requires=[
-        'redis>=2.7.4',
+        'redis>=2.10.0',
     ],
     extras_require={
         'django': [
-            'django-redis>=3.3',
+            'django-redis>=3.8.0',
         ]
     }
 )
