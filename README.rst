@@ -1,18 +1,57 @@
-=========================
-    python-redis-lock
-=========================
+===============================
+redis-lock
+===============================
 
-.. image:: https://secure.travis-ci.org/ionelmc/python-redis-lock.png?branch=master
-    :alt: Build Status
-    :target: http://travis-ci.org/ionelmc/python-redis-lock
+| |docs| |travis| |appveyor| |coveralls| |landscape| |scrutinizer|
+| |version| |downloads| |wheel| |supported-versions| |supported-implementations|
 
-.. image:: https://coveralls.io/repos/ionelmc/python-redis-lock/badge.png?branch=master
+.. |docs| image:: https://readthedocs.org/projects/python-redis-lock/badge/?style=flat
+    :target: https://readthedocs.org/projects/python-redis-lock
+    :alt: Documentation Status
+
+.. |travis| image:: http://img.shields.io/travis/ionelmc/python-redis-lock/master.png?style=flat
+    :alt: Travis-CI Build Status
+    :target: https://travis-ci.org/ionelmc/python-redis-lock
+
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/ionelmc/python-redis-lock?branch=master
+    :alt: AppVeyor Build Status
+    :target: https://ci.appveyor.com/project/ionelmc/python-redis-lock
+
+.. |coveralls| image:: http://img.shields.io/coveralls/ionelmc/python-redis-lock/master.png?style=flat
     :alt: Coverage Status
     :target: https://coveralls.io/r/ionelmc/python-redis-lock
 
-.. image:: https://badge.fury.io/py/python-redis-lock.png
-    :alt: PYPI Package
+.. |landscape| image:: https://landscape.io/github/ionelmc/python-redis-lock/master/landscape.svg?style=flat
+    :target: https://landscape.io/github/ionelmc/python-redis-lock/master
+    :alt: Code Quality Status
+
+.. |version| image:: http://img.shields.io/pypi/v/python-redis-lock.png?style=flat
+    :alt: PyPI Package latest release
     :target: https://pypi.python.org/pypi/python-redis-lock
+
+.. |downloads| image:: http://img.shields.io/pypi/dm/python-redis-lock.png?style=flat
+    :alt: PyPI Package monthly downloads
+    :target: https://pypi.python.org/pypi/python-redis-lock
+
+.. |wheel| image:: https://pypip.in/wheel/python-redis-lock/badge.png?style=flat
+    :alt: PyPI Wheel
+    :target: https://pypi.python.org/pypi/python-redis-lock
+
+.. |supported-versions| image:: https://pypip.in/py_versions/python-redis-lock/badge.png?style=flat
+    :alt: Supported versions
+    :target: https://pypi.python.org/pypi/python-redis-lock
+
+.. |supported-implementations| image:: https://pypip.in/implementation/python-redis-lock/badge.png?style=flat
+    :alt: Supported imlementations
+    :target: https://pypi.python.org/pypi/python-redis-lock
+
+.. |scrutinizer| image:: https://img.shields.io/scrutinizer/g/ionelmc/python-redis-lock/master.png?style=flat
+    :alt: Scrtinizer Status
+    :target: https://scrutinizer-ci.com/g/ionelmc/python-redis-lock/
+
+An example package. Replace this with a proper project description. Generated with https://github.com/ionelmc/cookiecutter-pylibrary
+
+* Free software: BSD license
 
 Lock context manager implemented via redis SETNX/BLPOP.
 
@@ -101,10 +140,17 @@ This is how it works:
 .. image:: https://raw.github.com/ionelmc/python-redis-lock/master/docs/redis-lock%20diagram.png
     :alt: python-redis-lock flow diagram
 
-TODO
-====
+Documentation
+=============
 
-* ???
+https://python-redis-lock.readthedocs.org/
+
+Development
+===========
+
+To run the all tests run::
+
+    tox
 
 Requirements
 ============
