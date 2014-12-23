@@ -3,7 +3,7 @@ logger = getLogger(__name__)
 
 from os import urandom
 from hashlib import sha1
-from contextlib import contextmanager
+
 from redis import StrictRedis
 from redis.exceptions import NoScriptError
 
@@ -32,6 +32,7 @@ class cached_property(object):
 
 class Lock(object):
     def __init__(self, redis_client, name, expire=None):
+        assert isinstance(redis_client, StrictRedis)
         self._client = redis_client
         self._expire = expire if expire is None else int(expire)
         self._tok = None
@@ -73,7 +74,6 @@ class Lock(object):
     def __enter__(self):
         assert self.acquire(blocking=True)
         return self
-
 
     def __exit__(self, exc_type=None, exc_value=None, traceback=None):
         logger.debug("Releasing %r.", self._name)

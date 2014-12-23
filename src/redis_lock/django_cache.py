@@ -5,12 +5,16 @@ from redis_lock import reset_all
 
 
 class RedisCache(PlainRedisCache):
+
     @property
     def __client(self):
         try:
             return self.client.get_client()
         except Exception as exc:
-            raise NotImplementedError("RedisCache doesn't have a raw client: %r. Use 'redis_cache.client.DefaultClient' as the CLIENT_CLASS !" % exc)
+            raise NotImplementedError(
+                "RedisCache doesn't have a raw client: %r. "
+                "Use 'redis_cache.client.DefaultClient' as the CLIENT_CLASS !" % exc
+            )
 
     def lock(self, key, expire=None):
         return Lock(self.__client, key, expire=expire)
