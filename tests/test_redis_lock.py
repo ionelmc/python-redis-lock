@@ -103,7 +103,11 @@ def test_no_overlap(redis_server):
 
             events = defaultdict(Event)
             for line in proc.read().splitlines():
-                pid, time, junk = line.split(' ', 2)
+                try:
+                    pid, time, junk = line.split(' ', 2)
+                    pid = int(pid)
+                except ValueError:
+                    continue
                 if 'Got lock for' in junk:
                     events[pid].pid = pid
                     events[pid].start = time
