@@ -12,6 +12,8 @@ from process_tests import wait_for_strings
 from redis import StrictRedis
 
 from redis_lock import Lock
+from redis_lock import reset_all
+
 
 TIMEOUT = int(os.getenv('REDIS_LOCK_TEST_TIMEOUT', 10))
 UDS_PATH = '/tmp/redis-lock-tests.sock'
@@ -121,3 +123,26 @@ def test_no_overlap(redis_server):
                         except:
                             print("[%s/%s]" % (event, other))
                             raise
+
+def test_reset(redis_server):
+    conn = StrictRedis(unix_socket_path=UDS_PATH)
+    with Lock(conn, "foobar") as lock:
+        lock.reset()
+        new_lock = Lock(conn, "foobar")
+        new_lock.acquire(blocking=False)
+        new_lock.release()
+
+
+def test_reset_all(redis_server):
+    conn = StrictRedis(unix_socket_path=UDS_PATH)
+    lock1 = Lock(conn, "foobar1")
+    lock2 = Lock(conn, "foobar2")
+    lock1.acquire(blocking=False)
+    lock2.acquire(blocking=False)
+    reset_all(conn)
+    lock1 = Lock(conn, "foobar1")
+    lock2 = Lock(conn, "foobar2")
+    lock1.acquire(blocking=False)
+    lock2.acquire(blocking=False)
+    lock1.release()
+    lock2.release()

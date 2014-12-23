@@ -33,7 +33,7 @@ class Lock(object):
         self._client.delete(self._name)
         self._client.delete(self._signal)
 
-    def __enter__(self, blocking=True):
+    def acquire(self, blocking=True):
         logger.debug("Getting %r ...", self._name)
 
         if self._tok is None:
@@ -53,7 +53,10 @@ class Lock(object):
 
         logger.debug("Got lock for %r.", self._name)
         return True
-    acquire = __enter__
+
+    def __enter__(self):
+        assert self.acquire(blocking=True)
+        return self
 
 
     def __exit__(self, exc_type=None, exc_value=None, traceback=None):

@@ -15,7 +15,7 @@ class RedisCache(PlainRedisCache):
     def lock(self, key, expire=None):
         return Lock(self.__client, key, expire=expire)
 
-    def reset_all(self, key):
+    def reset_all(self):
         """
         Forcibly deletes all locks if its remains (like a crash reason). Use this with care.
         """
