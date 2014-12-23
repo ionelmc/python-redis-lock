@@ -145,3 +145,12 @@ def test_reset_all(redis_server):
     lock2.acquire(blocking=False)
     lock1.release()
     lock2.release()
+
+
+def test_token(redis_server):
+    conn = StrictRedis(unix_socket_path=UDS_PATH)
+    lock = Lock(conn, "foobar-tok")
+    tok = lock.token
+    assert conn.get(lock._name) is None
+    lock.acquire(blocking=False)
+    assert conn.get(lock._name) == tok

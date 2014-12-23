@@ -18,6 +18,18 @@ UNLOCK_SCRIPT = b"""
 UNLOCK_SCRIPT_HASH = sha1(UNLOCK_SCRIPT).hexdigest()
 
 
+class cached_property(object):
+    def __init__(self, func):
+        self.__doc__ = getattr(func, '__doc__')
+        self.func = func
+
+    def __get__(self, obj, cls):
+        if obj is None:
+            return self
+        value = obj.__dict__[self.func.__name__] = self.func(obj)
+        return value
+
+
 class Lock(object):
     def __init__(self, redis_client, name, expire=None):
         self._client = redis_client
@@ -33,11 +45,15 @@ class Lock(object):
         self._client.delete(self._name)
         self._client.delete(self._signal)
 
+    @cached_property
+    def token(self):
+        return urandom(16)
+
     def acquire(self, blocking=True):
         logger.debug("Getting %r ...", self._name)
 
         if self._tok is None:
-            self._tok = urandom(16) if self._expire else 1
+            self._tok = self.token
         else:
             raise RuntimeError("Already aquired from this Lock instance.")
 
