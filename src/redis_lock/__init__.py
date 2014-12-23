@@ -7,6 +7,8 @@ from hashlib import sha1
 from redis import StrictRedis
 from redis.exceptions import NoScriptError
 
+__version__ = "0.1.2"
+
 UNLOCK_SCRIPT = b"""
     if redis.call("get", KEYS[1]) == ARGV[1] then
         redis.call("lpush", KEYS[2], 1)
