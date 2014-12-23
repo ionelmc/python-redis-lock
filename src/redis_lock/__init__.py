@@ -26,6 +26,13 @@ class Lock(object):
         self._name = 'lock:'+name
         self._signal = 'lock-signal:'+name
 
+    def reset(self):
+        """
+        Forcibly deletes the lock. Use this with care.
+        """
+        self._client.delete(self._name)
+        self._client.delete(self._signal)
+
     def __enter__(self, blocking=True):
         logger.debug("Getting %r ...", self._name)
 
@@ -58,9 +65,10 @@ class Lock(object):
             self._client.eval(UNLOCK_SCRIPT, 2, self._name, self._signal, self._tok)
     release = __exit__
 
-def reset(redis_client):
+
+def reset_all(redis_client):
     """
-    Deletes all locks if its remains (like a crash reason).
+    Forcibly deletes all locks if its remains (like a crash reason). Use this with care.
     """
     for lock_key in redis_client.keys('lock:*'):
         redis_client.delete(lock_key)

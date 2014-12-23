@@ -1,11 +1,22 @@
 from django_redis.cache import RedisCache as PlainRedisCache
+
 from redis_lock import Lock
+from redis_lock import reset_all
 
 
 class RedisCache(PlainRedisCache):
-    def lock(self, key, expire=None):
+    @property
+    def __client(self):
         try:
-            client = self.client.get_client()
+            return self.client.get_client()
         except Exception as exc:
             raise NotImplementedError("RedisCache doesn't have a raw client: %r. Use 'redis_cache.client.DefaultClient' as the CLIENT_CLASS !" % exc)
-        return Lock(client, key, expire=expire)
+
+    def lock(self, key, expire=None):
+        return Lock(self.__client, key, expire=expire)
+
+    def reset_all(self, key):
+        """
+        Forcibly deletes all locks if its remains (like a crash reason). Use this with care.
+        """
+        reset_all(self.__client)
