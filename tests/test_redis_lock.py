@@ -153,7 +153,7 @@ def test_reset_all(redis_server):
 
 def test_owner_id(redis_server):
     conn = StrictRedis(unix_socket_path=UDS_PATH)
-    unique_identifier = "foobar-identifier"
+    unique_identifier = b"foobar-identifier"
     lock = Lock(conn, "foobar-tok", expire=TIMEOUT/4, id=unique_identifier)
     lock_id = lock.id
     assert lock_id == unique_identifier
