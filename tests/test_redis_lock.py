@@ -151,10 +151,12 @@ def test_reset_all(redis_server):
     lock2.release()
 
 
-def test_token(redis_server):
+def test_owner_id(redis_server):
     conn = StrictRedis(unix_socket_path=UDS_PATH)
-    lock = Lock(conn, "foobar-tok")
-    tok = lock.token
-    assert conn.get(lock._name) is None
+    unique_identifier = "foobar-identifier"
+    lock = Lock(conn, "foobar-id", expire=TIMEOUT/4, id=unique_identifier)
+    lock_id = lock.id
+    assert lock_id == unique_identifier
     lock.acquire(blocking=False)
-    assert conn.get(lock._name) == tok
+    assert lock.get_owner_id() == unique_identifier
+    lock.release()
