@@ -16,8 +16,8 @@ class RedisCache(PlainRedisCache):
                 "Use 'redis_cache.client.DefaultClient' as the CLIENT_CLASS !" % exc
             )
 
-    def lock(self, key, expire=None):
-        return Lock(self.__client, key, expire=expire)
+    def lock(self, key, expire=None, id=None):
+        return Lock(self.__client, key, expire=expire, id=id)
 
     def reset_all(self):
         """
