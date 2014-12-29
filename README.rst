@@ -74,6 +74,22 @@ Eg::
     else:
         print("Someone else has the lock.")
 
+
+You can also associate an identifier along with the lock so that it can be retrieved later by the same process, or by a different one. This is useful in cases where the application needs to identify the lock owner (find out who currently owns the lock).
+Eg::
+
+    import socket
+    host_id = "owned-by-%s" % socket.gethostname()
+    lock = redis_lock.Lock(conn, "name-of-the-lock", id=host_id)
+    if lock.acquire(blocking=False):
+        print("Got the lock.")
+    else:
+        if lock.get_owner_id() == host_id:
+            print("I already acquired this lock.")
+        else:
+            print("Someone else has the lock.")
+
+
 Avoid dogpile effect in django
 ------------------------------
 
