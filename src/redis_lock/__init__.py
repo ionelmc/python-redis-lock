@@ -26,6 +26,7 @@ class Lock(object):
         self._client = redis_client
         self._expire = expire if expire is None else int(expire)
         self._id = urandom(16) if id is None else id
+        self._held = False
         self._name = 'lock:'+name
         self._signal = 'lock-signal:'+name
 
@@ -46,6 +47,9 @@ class Lock(object):
     def acquire(self, blocking=True):
         logger.debug("Getting %r ...", self._name)
 
+        if self._held:
+            raise RuntimeError("Already aquired from this Lock instance.")
+
         busy = True
         while busy:
             busy = not self._client.set(self._name, self._id, nx=True, ex=self._expire)
@@ -57,6 +61,7 @@ class Lock(object):
                     return False
 
         logger.debug("Got lock for %r.", self._name)
+        self._held = True
         return True
 
     def __enter__(self):
@@ -70,6 +75,7 @@ class Lock(object):
         except NoScriptError:
             logger.warn("UNLOCK_SCRIPT not cached.")
             self._client.eval(UNLOCK_SCRIPT, 2, self._name, self._signal, self._id)
+        self._held = False
     release = __exit__
 
 
