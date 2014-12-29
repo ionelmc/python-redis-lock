@@ -7,7 +7,7 @@ from hashlib import sha1
 from redis import StrictRedis
 from redis.exceptions import NoScriptError
 
-__version__ = "1.0.0"
+__version__ = "2.0.0"
 
 UNLOCK_SCRIPT = b"""
     if redis.call("get", KEYS[1]) == ARGV[1] then

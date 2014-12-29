@@ -24,7 +24,7 @@ def read(*names, **kwargs):
 
 setup(
     name="python-redis-lock",
-    version="1.0.0",
+    version="2.0.0",
     license="BSD",
     description="Lock context manager implemented via redis SETNX/BLPOP.",
     long_description="%s\n%s" % (read("README.rst"), re.sub(":obj:`~?(.*?)`", r"``\1``", read("CHANGELOG.rst"))),
