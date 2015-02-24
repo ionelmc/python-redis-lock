@@ -1,6 +1,4 @@
 from logging import getLogger
-logger = getLogger(__name__)
-
 from os import urandom
 from hashlib import sha1
 
@@ -8,6 +6,8 @@ from redis import StrictRedis
 from redis.exceptions import NoScriptError
 
 __version__ = "2.0.0"
+
+logger = getLogger(__name__)
 
 UNLOCK_SCRIPT = b"""
     if redis.call("get", KEYS[1]) == ARGV[1] then
