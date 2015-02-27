@@ -56,7 +56,7 @@ class Lock(object):
         logger.debug("Getting %r ...", self._name)
 
         if self._held:
-            raise RuntimeError("Already aquired from this Lock instance.")
+            raise AlreadyAcquired("Already aquired from this Lock instance.")
 
         busy = True
         while busy:
