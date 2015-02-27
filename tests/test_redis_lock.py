@@ -178,7 +178,7 @@ def test_token(conn):
 
 
 def test_bogus_release(conn):
-    lock = Lock(None, "foobar-tok")
+    lock = Lock(conn, "foobar-tok")
     pytest.raises(NotAcquired, lock.release)
     lock.release(force=True)
 
