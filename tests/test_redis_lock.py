@@ -25,16 +25,17 @@ def redis_server(scope='module'):
         os.unlink(UDS_PATH)
     except OSError:
         pass
-    with TestProcess('redis-server', '--port', '0', '--unixsocket', UDS_PATH) as redis_server:
-        wait_for_strings(redis_server.read, TIMEOUT, "Running")
-        yield redis_server
+    with TestProcess('redis-server', '--port', '0', '--unixsocket', UDS_PATH) as process:
+        wait_for_strings(process.read, TIMEOUT, "Running")
+        yield process
 
 
 def test_simple(redis_server):
     with TestProcess(sys.executable, HELPER, 'test_simple') as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
-            wait_for_strings(proc.read, TIMEOUT,
+            wait_for_strings(
+                proc.read, TIMEOUT,
                 'Getting %r ...' % name,
                 'Got lock for %r.' % name,
                 'Releasing %r.' % name,
@@ -48,7 +49,8 @@ def test_no_block(redis_server):
         with TestProcess(sys.executable, HELPER, 'test_no_block') as proc:
             with dump_on_error(proc.read):
                 name = 'lock:foobar'
-                wait_for_strings(proc.read, TIMEOUT,
+                wait_for_strings(
+                    proc.read, TIMEOUT,
                     'Getting %r ...' % name,
                     'Failed to get %r.' % name,
                     'acquire=>False',
@@ -62,7 +64,8 @@ def test_expire(redis_server):
         with TestProcess(sys.executable, HELPER, 'test_expire') as proc:
             with dump_on_error(proc.read):
                 name = 'lock:foobar'
-                wait_for_strings(proc.read, TIMEOUT,
+                wait_for_strings(
+                    proc.read, TIMEOUT,
                     'Getting %r ...' % name,
                     'Got lock for %r.' % name,
                     'Releasing %r.' % name,
@@ -98,6 +101,8 @@ def test_no_overlap(redis_server):
             wait_for_strings(proc.read, 10*TIMEOUT, 'DIED.')
 
             class Event(object):
+                pid = start = end = '?'
+
                 def __str__(self):
                     return "Event(%s; %r => %r)" % (self.pid, self.start, self.end)
 
