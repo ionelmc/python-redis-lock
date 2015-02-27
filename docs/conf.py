@@ -19,10 +19,10 @@ source_suffix = '.rst'
 master_doc = 'index'
 project = u'redis-lock'
 copyright = u'2014, Ionel Cristian Mărieș'
-version = release = re.findall(
-    'version="(.*)"',
-    open(os.path.join(os.path.dirname(__file__), '../setup.py')).read()
-)[0]
+year = u'2014'
+author = u'Ionel Cristian Maries'
+copyright = '{0}, {1}'.format(year, author)
+version = release = u'2.0.0'
 
 import sphinx_py3doc_enhanced_theme
 html_theme = "sphinx_py3doc_enhanced_theme"
