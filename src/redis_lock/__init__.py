@@ -20,6 +20,7 @@ UNLOCK_SCRIPT = b"""
 """
 UNLOCK_SCRIPT_HASH = sha1(UNLOCK_SCRIPT).hexdigest()
 
+
 class AlreadyAcquired(RuntimeError):
     pass
 
