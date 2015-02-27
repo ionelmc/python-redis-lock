@@ -30,6 +30,11 @@ def redis_server(scope='module'):
         yield process
 
 
+@pytest.fixture(scope='function')
+def conn(redis_server):
+    return StrictRedis(unix_socket_path=UDS_PATH)
+
+
 def test_simple(redis_server):
     with TestProcess(sys.executable, HELPER, 'test_simple') as proc:
         with dump_on_error(proc.read):
@@ -44,8 +49,8 @@ def test_simple(redis_server):
             )
 
 
-def test_no_block(redis_server):
-    with Lock(StrictRedis(unix_socket_path=UDS_PATH), "foobar"):
+def test_no_block(conn):
+    with Lock(conn, "foobar"):
         with TestProcess(sys.executable, HELPER, 'test_no_block') as proc:
             with dump_on_error(proc.read):
                 name = 'lock:foobar'
@@ -58,8 +63,7 @@ def test_no_block(redis_server):
                 )
 
 
-def test_expire(redis_server):
-    conn = StrictRedis(unix_socket_path=UDS_PATH)
+def test_expire(conn):
     with Lock(conn, "foobar", expire=TIMEOUT/4):
         with TestProcess(sys.executable, HELPER, 'test_expire') as proc:
             with dump_on_error(proc.read):
@@ -79,15 +83,15 @@ def test_expire(redis_server):
         lock.release()
 
 
-def test_double_acquire(redis_server):
-    lock = Lock(StrictRedis(unix_socket_path=UDS_PATH), "foobar")
+def test_double_acquire(conn):
+    lock = Lock(conn, "foobar")
     with lock:
         pytest.raises(RuntimeError, lock.acquire)
         pytest.raises(AlreadyAcquired, lock.acquire)
 
 
-def test_plain(redis_server):
-    with Lock(StrictRedis(unix_socket_path=UDS_PATH), "foobar"):
+def test_plain(conn):
+    with Lock(conn, "foobar"):
         time.sleep(0.01)
 
 
@@ -133,8 +137,7 @@ def test_no_overlap(redis_server):
                             print("[%s/%s]" % (event, other))
                             raise
 
-def test_reset(redis_server):
-    conn = StrictRedis(unix_socket_path=UDS_PATH)
+def test_reset(conn):
     with Lock(conn, "foobar") as lock:
         lock.reset()
         new_lock = Lock(conn, "foobar")
@@ -142,8 +145,7 @@ def test_reset(redis_server):
         new_lock.release()
 
 
-def test_reset_all(redis_server):
-    conn = StrictRedis(unix_socket_path=UDS_PATH)
+def test_reset_all(conn):
     lock1 = Lock(conn, "foobar1")
     lock2 = Lock(conn, "foobar2")
     lock1.acquire(blocking=False)
@@ -157,8 +159,7 @@ def test_reset_all(redis_server):
     lock2.release()
 
 
-def test_owner_id(redis_server):
-    conn = StrictRedis(unix_socket_path=UDS_PATH)
+def test_owner_id(conn):
     unique_identifier = b"foobar-identifier"
     lock = Lock(conn, "foobar-tok", expire=TIMEOUT/4, id=unique_identifier)
     lock_id = lock.id
@@ -168,8 +169,7 @@ def test_owner_id(redis_server):
     lock.release()
 
 
-def test_token(redis_server):
-    conn = StrictRedis(unix_socket_path=UDS_PATH)
+def test_token(conn):
     lock = Lock(conn, "foobar-tok")
     tok = lock.id
     assert conn.get(lock._name) is None
@@ -177,13 +177,12 @@ def test_token(redis_server):
     assert conn.get(lock._name) == tok
 
 
-def test_bogus_release():
+def test_bogus_release(conn):
     lock = Lock(None, "foobar-tok")
     pytest.raises(NotAcquired, lock.release)
     lock.release(force=True)
 
-def test_release_from_nonblocking_leaving_garbage(redis_server):
-    conn = StrictRedis(unix_socket_path=UDS_PATH)
+def test_release_from_nonblocking_leaving_garbage(conn):
     for _ in range(10):
         lock = Lock(conn, 'release_from_nonblocking')
         lock.acquire(blocking=False)
