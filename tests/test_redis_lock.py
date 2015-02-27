@@ -182,3 +182,10 @@ def test_bogus_release():
     pytest.raises(NotAcquired, lock.release)
     lock.release(force=True)
 
+def test_release_from_nonblocking_leaving_garbage(redis_server):
+    conn = StrictRedis(unix_socket_path=UDS_PATH)
+    for _ in range(10):
+        lock = Lock(conn, 'release_from_nonblocking')
+        lock.acquire(blocking=False)
+        lock.release()
+        assert conn.llen('lock-signal:release_from_nonblocking') == 1
