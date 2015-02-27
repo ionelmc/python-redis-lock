@@ -9,5 +9,6 @@
   <string id="pylint_checking_rcfile"></string>
   <string relative="path" id="python3DefaultInterpreter">.tox/3.4-1.7-nocover/bin/python</string>
   <string relative="path" id="pythonDefaultInterpreter">.tox/2.7-1.7-nocover/bin/python</string>
+  <string relative="path" id="pythonExtraPaths">src</string>
 </preference-set>
 </project>
