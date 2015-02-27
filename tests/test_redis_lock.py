@@ -11,7 +11,7 @@ from process_tests import TestProcess
 from process_tests import wait_for_strings
 from redis import StrictRedis
 
-from redis_lock import Lock
+from redis_lock import Lock, AlreadyAcquired, NotAcquired
 from redis_lock import reset_all
 
 from conf import TIMEOUT
@@ -83,6 +83,7 @@ def test_double_acquire(redis_server):
     lock = Lock(StrictRedis(unix_socket_path=UDS_PATH), "foobar")
     with lock:
         pytest.raises(RuntimeError, lock.acquire)
+        pytest.raises(AlreadyAcquired, lock.acquire)
 
 
 def test_plain(redis_server):
@@ -174,3 +175,10 @@ def test_token(redis_server):
     assert conn.get(lock._name) is None
     lock.acquire(blocking=False)
     assert conn.get(lock._name) == tok
+
+
+def test_bogus_release():
+    lock = Lock(None, "foobar-tok")
+    pytest.raises(NotAcquired, lock.release)
+    lock.release(force=True)
+

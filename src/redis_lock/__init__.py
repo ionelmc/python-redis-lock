@@ -19,6 +19,13 @@ UNLOCK_SCRIPT = b"""
 """
 UNLOCK_SCRIPT_HASH = sha1(UNLOCK_SCRIPT).hexdigest()
 
+class AlreadyAcquired(RuntimeError):
+    pass
+
+
+class NotAcquired(RuntimeError):
+    pass
+
 
 class Lock(object):
     def __init__(self, redis_client, name, expire=None, id=None):
@@ -68,7 +75,9 @@ class Lock(object):
         assert self.acquire(blocking=True)
         return self
 
-    def __exit__(self, exc_type=None, exc_value=None, traceback=None):
+    def __exit__(self, exc_type=None, exc_value=None, traceback=None, force=False):
+        if not (self._held or force):
+            raise NotAcquired("This Lock instance didn't acquire the lock.")
         logger.debug("Releasing %r.", self._name)
         try:
             self._client.evalsha(UNLOCK_SCRIPT_HASH, 2, self._name, self._signal, self._id)
