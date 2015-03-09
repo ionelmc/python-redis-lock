@@ -20,18 +20,24 @@ env:
     - TOXENV=2.7-1.6-nocover
     - TOXENV=2.7-1.7,coveralls
     - TOXENV=2.7-1.7-nocover
+    - TOXENV=2.7-1.8,coveralls
+    - TOXENV=2.7-1.8-nocover
     - TOXENV=3.3-1.5,coveralls
     - TOXENV=3.3-1.5-nocover
     - TOXENV=3.3-1.6,coveralls
     - TOXENV=3.3-1.6-nocover
     - TOXENV=3.3-1.7,coveralls
     - TOXENV=3.3-1.7-nocover
+    - TOXENV=3.3-1.8,coveralls
+    - TOXENV=3.3-1.8-nocover
     - TOXENV=3.4-1.5,coveralls
     - TOXENV=3.4-1.5-nocover
     - TOXENV=3.4-1.6,coveralls
     - TOXENV=3.4-1.6-nocover
     - TOXENV=3.4-1.7,coveralls
     - TOXENV=3.4-1.7-nocover
+    - TOXENV=3.4-1.8,coveralls
+    - TOXENV=3.4-1.8-nocover
     - TOXENV=pypy-1.4,coveralls
     - TOXENV=pypy-1.4-nocover
     - TOXENV=pypy-1.5,coveralls
@@ -40,6 +46,8 @@ env:
     - TOXENV=pypy-1.6-nocover
     - TOXENV=pypy-1.7,coveralls
     - TOXENV=pypy-1.7-nocover
+    - TOXENV=pypy-1.8,coveralls
+    - TOXENV=pypy-1.8-nocover
 before_install:
   - python --version
   - virtualenv --version
