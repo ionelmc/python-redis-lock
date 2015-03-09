@@ -2,7 +2,7 @@
 redis-lock
 ===============================
 
-| |docs| |travis| |appveyor| |coveralls| |landscape| |scrutinizer|
+| |docs| |travis| |coveralls| |landscape| |scrutinizer|
 | |version| |downloads| |wheel| |supported-versions| |supported-implementations|
 
 .. |docs| image:: https://readthedocs.org/projects/python-redis-lock/badge/?style=flat
