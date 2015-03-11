@@ -2,6 +2,12 @@
 Changelog
 =========
 
+2.1.0 (2015-03-12)
+------------------
+
+* New specific exception classes: ``AlreadyAcquired`` and ``NotAcquired``.
+* Slightly improved efficiency when non-waiting acquires are used.
+
 2.0.0 (2014-12-29)
 ------------------
 
