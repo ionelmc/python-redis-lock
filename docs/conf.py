@@ -22,7 +22,7 @@ copyright = u'2014, Ionel Cristian Mărieș'
 year = u'2014'
 author = u'Ionel Cristian Maries'
 copyright = '{0}, {1}'.format(year, author)
-version = release = u'2.0.0'
+version = release = u'2.1.0'
 
 import sphinx_py3doc_enhanced_theme
 html_theme = "sphinx_py3doc_enhanced_theme"

@@ -5,7 +5,7 @@ from hashlib import sha1
 from redis import StrictRedis
 from redis.exceptions import NoScriptError
 
-__version__ = "2.0.0"
+__version__ = "2.1.0"
 
 logger = getLogger(__name__)
 
