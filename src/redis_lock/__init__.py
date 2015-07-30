@@ -188,7 +188,12 @@ class InterruptableThread(threading.Thread):
         If timeout is specified (as a float of seconds to wait) then wait
         up to this many seconds before returning the value of `should_exit`.
         """
-        return self._should_exit.wait(timeout)
+        should_exit = self._should_exit.wait(timeout)
+        if should_exit is None:
+            # Python 2.6 compatibility which doesn't return self.__flag when
+            # calling Event.wait()
+            should_exit = self.should_exit
+        return should_exit
 
 
 def reset_all(redis_client):
