@@ -131,7 +131,7 @@ class Lock(object):
 
     def _stop_lock_refresher(self):
         """Stop the lock refresher"""
-        if self._lock_refresh_thread is None:
+        if self._lock_refresh_thread is None or not self._lock_refresh_thread.is_alive():
             return
         logger.debug("Signalling the lock refresher to stop")
         self._lock_refresh_thread.request_exit()
