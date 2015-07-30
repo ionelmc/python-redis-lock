@@ -1,5 +1,4 @@
 import threading
-import time
 from logging import getLogger
 from os import urandom
 from hashlib import sha1
@@ -108,8 +107,7 @@ class Lock(object):
         `self._lock_refresh_thread.should_exit` is False.
         """
         log = getLogger("%s.lock_refresher" % __name__)
-        while not self._lock_refresh_thread.should_exit:
-            time.sleep(interval)
+        while not self._lock_refresh_thread.wait_for_exit_request(timeout=interval):
             log.debug("Refreshing lock")
             self._client.set(self._name, self._id, xx=True, ex=self._expire)
         log.debug("Exit requested, stopping lock refreshing")
@@ -166,8 +164,8 @@ class InterruptableThread(threading.Thread):
     on it.
 
     Code running inside this thread should periodically check the
-    `should_exit` property on the thread object and stop further processing
-    once it returns True.
+    `should_exit` property (or use wait_for_exit_request) on the thread
+    object and stop further processing once it returns True.
     """
     def __init__(self, *args, **kwargs):
         self._should_exit = threading.Event()
@@ -182,6 +180,15 @@ class InterruptableThread(threading.Thread):
     @property
     def should_exit(self):
         return self._should_exit.isSet()
+
+    def wait_for_exit_request(self, timeout=None):
+        """
+        Wait until the thread has been signalled to exit.
+
+        If timeout is specified (as a float of seconds to wait) then wait
+        up to this many seconds before returning the value of `should_exit`.
+        """
+        return self._should_exit.wait(timeout)
 
 
 def reset_all(redis_client):
