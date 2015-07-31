@@ -190,17 +190,17 @@ def test_release_from_nonblocking_leaving_garbage(conn):
         assert conn.llen('lock-signal:release_from_nonblocking') == 1
 
 def test_lock_refresher(conn):
-    lock = Lock(conn, 'lock_refresher', expire=3, refresh_interval=0)
+    lock = Lock(conn, 'lock_refresher', expire=3, renewal=0)
     lock.acquire()
-    assert lock._lock_refresh_thread is None, "No lock refresh thread should have been spawned"
+    assert lock._lock_renewal_thread is None, "No lock refresh thread should have been spawned"
 
-    lock = Lock(conn, 'lock_refresher', expire=3, refresh_interval=1)
+    lock = Lock(conn, 'lock_refresher', expire=3, renewal=1)
     lock.acquire()
-    assert isinstance(lock._lock_refresh_thread, InterruptableThread)
-    assert not lock._lock_refresh_thread.should_exit
+    assert isinstance(lock._lock_renewal_thread, InterruptableThread)
+    assert not lock._lock_renewal_thread.should_exit
 
     time.sleep(3)
     assert conn.get(lock._name) == lock.id, "Key expired but it should have been getting refreshed"
 
     lock.release()
-    assert lock._lock_refresh_thread is None
+    assert lock._lock_renewal_thread is None

@@ -39,7 +39,7 @@ class Lock(object):
     A Lock context manager implemented via redis SETNX/BLPOP.
     """
 
-    def __init__(self, redis_client, name, expire=None, id=None, refresh_interval=-1):
+    def __init__(self, redis_client, name, expire=None, id=None, renewal=-1):
         """
         :param redis_client:
             An instance of :class:`~StrictRedis`.
@@ -51,9 +51,9 @@ class Lock(object):
         :param id:
             The ID (redis value) the lock should have. A random value is
             generated when left at the default.
-        :param refresh_interval:
-            If set to a value greater than 0, automatically refresh the
-            lock every `refresh_interval` seconds using a separate thread.
+        :param renewal:
+            If set to a value greater than 0, automatically renew the
+            lock every `renewal` seconds using a separate thread.
         """
         assert isinstance(redis_client, StrictRedis)
         self._client = redis_client
@@ -62,8 +62,8 @@ class Lock(object):
         self._held = False
         self._name = 'lock:'+name
         self._signal = 'lock-signal:'+name
-        self._lock_refresh_interval = refresh_interval
-        self._lock_refresh_thread = None
+        self._lock_renewal_interval = renewal
+        self._lock_renewal_thread = None
 
     def reset(self):
         """
@@ -97,46 +97,46 @@ class Lock(object):
 
         logger.debug("Got lock for %r.", self._name)
         self._held = True
-        if self._lock_refresh_interval > 0:
-            self._start_lock_refresher()
+        if self._lock_renewal_interval > 0:
+            self._start_lock_renewer()
         return True
 
-    def _lock_refresher(self, interval):
+    def _lock_renewer(self, interval):
         """
-        Refresh the lock key in redis every `interval` seconds as long as
-        `self._lock_refresh_thread.should_exit` is False.
+        Renew the lock key in redis every `interval` seconds for as long
+        as `self._lock_renewal_thread.should_exit` is False.
         """
         log = getLogger("%s.lock_refresher" % __name__)
-        while not self._lock_refresh_thread.wait_for_exit_request(timeout=interval):
+        while not self._lock_renewal_thread.wait_for_exit_request(timeout=interval):
             log.debug("Refreshing lock")
             self._client.set(self._name, self._id, xx=True, ex=self._expire)
         log.debug("Exit requested, stopping lock refreshing")
 
-    def _start_lock_refresher(self):
+    def _start_lock_renewer(self):
         """Start the lock refresher"""
-        if self._lock_refresh_thread is not None:
+        if self._lock_renewal_thread is not None:
             raise AlreadyStarted("Lock refresh thread already started")
 
         logger.debug(
             "Starting thread to refresh lock every %s seconds",
-            self._lock_refresh_interval
+            self._lock_renewal_interval
         )
-        self._lock_refresh_thread = InterruptableThread(
+        self._lock_renewal_thread = InterruptableThread(
             group=None,
-            target=self._lock_refresher,
-            kwargs={'interval': self._lock_refresh_interval}
+            target=self._lock_renewer,
+            kwargs={'interval': self._lock_renewal_interval}
         )
-        self._lock_refresh_thread.setDaemon(True)
-        self._lock_refresh_thread.start()
+        self._lock_renewal_thread.setDaemon(True)
+        self._lock_renewal_thread.start()
 
-    def _stop_lock_refresher(self):
+    def _stop_lock_renewer(self):
         """Stop the lock refresher"""
-        if self._lock_refresh_thread is None or not self._lock_refresh_thread.is_alive():
+        if self._lock_renewal_thread is None or not self._lock_renewal_thread.is_alive():
             return
         logger.debug("Signalling the lock refresher to stop")
-        self._lock_refresh_thread.request_exit()
-        self._lock_refresh_thread.join()
-        self._lock_refresh_thread = None
+        self._lock_renewal_thread.request_exit()
+        self._lock_renewal_thread.join()
+        self._lock_renewal_thread = None
         logger.debug("Lock refresher has stopped")
 
     def __enter__(self):
@@ -146,8 +146,8 @@ class Lock(object):
     def __exit__(self, exc_type=None, exc_value=None, traceback=None, force=False):
         if not (self._held or force):
             raise NotAcquired("This Lock instance didn't acquire the lock.")
-        if self._lock_refresh_thread is not None:
-            self._stop_lock_refresher()
+        if self._lock_renewal_thread is not None:
+            self._stop_lock_renewer()
         logger.debug("Releasing %r.", self._name)
         try:
             self._client.evalsha(UNLOCK_SCRIPT_HASH, 2, self._name, self._signal, self._id)
