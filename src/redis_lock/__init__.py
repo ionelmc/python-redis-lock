@@ -106,7 +106,7 @@ class Lock(object):
 
         logger.debug("Got lock for %r.", self._name)
         self._held = True
-        if self._lock_renewal_interval > 0:
+        if self._lock_renewal_interval is not None:
             self._start_lock_renewer()
         return True
 
