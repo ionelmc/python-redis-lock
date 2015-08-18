@@ -139,11 +139,19 @@ You would write your functions like this::
 
 
 Troubleshooting
-------------------------------
+---------------
 
 In some cases, the lock remains in redis forever (like a server blackout / redis or application crash / an unhandled
-exception). In such cases, the lock is not removed by restarting the application. One solution is to use the
-``reset_all()`` function when the application starts::
+exception). In such cases, the lock is not removed by restarting the application. One solution is to turn on the
+`auto_renewal` parameter in combination with `expire` to set a time-out on the lock, but let `Lock()` automatically
+keep resetting the expire time while your application code is executing::
+
+    # Get a lock with a 60-second lifetime but keep renewing it automatically
+    # to ensure the lock is held for as long as the Python process is running.
+    with redis_lock.Lock('my-lock', expire=60, auto_renewal=True):
+        # Do work....
+
+Another solution is to use the ``reset_all()`` function when the application starts::
 
     # On application start/restart
     import redis_lock
@@ -159,6 +167,7 @@ Features
 
 * based on the standard SETNX recipe
 * optional expiry
+* optional lock renewal (use a low expire but keep the lock active)
 * no spinloops at acquire
 
 Implementation
