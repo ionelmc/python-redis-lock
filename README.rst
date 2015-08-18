@@ -146,7 +146,7 @@ exception). In such cases, the lock is not removed by restarting the application
 `auto_renewal` parameter in combination with `expire` to set a time-out on the lock, but let `Lock()` automatically
 keep resetting the expire time while your application code is executing::
 
-    # Expire the lock after 60 seconds, but keep renewing it every 30 seconds
+    # Get a lock with a 60-second lifetime but keep renewing it automatically
     # to ensure the lock is held for as long as the Python process is running.
     with redis_lock.Lock('my-lock', expire=60, auto_renewal=True):
         # Do work....
