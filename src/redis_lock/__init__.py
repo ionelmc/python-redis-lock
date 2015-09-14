@@ -1,4 +1,5 @@
 import threading
+import time
 from logging import getLogger
 from os import urandom
 from hashlib import sha1
@@ -39,7 +40,8 @@ class Lock(object):
     A Lock context manager implemented via redis SETNX/BLPOP.
     """
 
-    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False):
+    def __init__(self, redis_client, name, expire=None, id=None,
+                 auto_renewal=False, blocking=True, max_retries=3):
         """
         :param redis_client:
             An instance of :class:`~StrictRedis`.
@@ -55,6 +57,12 @@ class Lock(object):
             If set to True, Lock will automatically renew the lock so that it
             doesn't expire for as long as the lock is held (acquire() called
             or running in a context manager).
+        :param blocking:
+            If set to True, code will be executed until Lock has been acquired.
+            Otherwise, code will be executed until max retries count have
+            been reached.
+        :param max_retries:
+            Maximum number of tries to acquire lock in controlled executions.
 
             Implementation note: Renewal will happen using a daemon thread with
             an interval of expire*2/3. If wishing to use a different renewal
@@ -73,6 +81,9 @@ class Lock(object):
         self._signal = 'lock-signal:'+name
         self._lock_renewal_interval = expire*2/3 if auto_renewal else None
         self._lock_renewal_thread = None
+        self._blocking = blocking
+        self._max_retries = max_retries
+        self._retry_interval = 0.2
 
     def reset(self):
         """
@@ -88,8 +99,11 @@ class Lock(object):
     def get_owner_id(self):
         return self._client.get(self._name)
 
-    def acquire(self, blocking=True):
+    def acquire(self, blocking=None):
         logger.debug("Getting %r ...", self._name)
+
+        if blocking is None:
+            blocking = self._blocking
 
         if self._held:
             raise AlreadyAcquired("Already aquired from this Lock instance.")
@@ -149,7 +163,16 @@ class Lock(object):
         logger.debug("Lock refresher has stopped")
 
     def __enter__(self):
-        assert self.acquire(blocking=True)
+        max_retries = self._blocking and 1 or self._max_retries
+        retries = 0
+        while retries < max_retries:
+            if not self.acquire(blocking=self._blocking):
+                retries += 1
+
+            if retries == max_retries:
+                time.sleep(self._retry_interval)
+
+        assert self.acquire(blocking=self._blocking)
         return self
 
     def __exit__(self, exc_type=None, exc_value=None, traceback=None, force=False):
