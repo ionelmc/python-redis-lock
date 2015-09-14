@@ -26,8 +26,9 @@ def redis_server(scope='module'):
     except OSError:
         pass
     with TestProcess('redis-server', '--port', '0', '--unixsocket', UDS_PATH) as process:
-        wait_for_strings(process.read, TIMEOUT, "Running")
-        yield process
+        with dump_on_error(process.read):
+            wait_for_strings(process.read, TIMEOUT, "Running")
+            yield process
 
 
 @pytest.fixture(scope='function')
