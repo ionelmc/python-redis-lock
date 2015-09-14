@@ -169,7 +169,7 @@ class Lock(object):
             if not self.acquire(blocking=self._blocking):
                 retries += 1
 
-            if retries == max_retries:
+            if retries < max_retries:
                 time.sleep(self._retry_interval)
 
         assert self.acquire(blocking=self._blocking)
