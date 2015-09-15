@@ -1,52 +1,76 @@
-===============================
+==========
 redis-lock
-===============================
+==========
 
-| |docs| |travis| |coveralls| |landscape| |scrutinizer|
-| |version| |downloads| |wheel| |supported-versions| |supported-implementations|
+.. list-table::
+    :stub-columns: 1
+
+    * - docs
+      - |docs|
+    * - tests
+      - | |travis| |appveyor| |requires|
+        | |coveralls| |codecov|
+        | |landscape| |scrutinizer| |codacy| |codeclimate|
+    * - package
+      - |version| |downloads| |wheel| |supported-versions| |supported-implementations|
 
 .. |docs| image:: https://readthedocs.org/projects/python-redis-lock/badge/?style=flat
     :target: https://readthedocs.org/projects/python-redis-lock
     :alt: Documentation Status
 
-.. |travis| image:: http://img.shields.io/travis/ionelmc/python-redis-lock/master.png?style=flat
+.. |travis| image:: https://travis-ci.org/ionelmc/python-redis-lock.svg?branch=master
     :alt: Travis-CI Build Status
     :target: https://travis-ci.org/ionelmc/python-redis-lock
 
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/ionelmc/python-redis-lock?branch=master
+.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/ionelmc/python-redis-lock?branch=master&svg=true
     :alt: AppVeyor Build Status
     :target: https://ci.appveyor.com/project/ionelmc/python-redis-lock
 
-.. |coveralls| image:: http://img.shields.io/coveralls/ionelmc/python-redis-lock/master.png?style=flat
+.. |requires| image:: https://requires.io/github/ionelmc/python-redis-lock/requirements.svg?branch=master
+    :alt: Requirements Status
+    :target: https://requires.io/github/ionelmc/python-redis-lock/requirements/?branch=master
+
+.. |coveralls| image:: https://coveralls.io/repos/ionelmc/python-redis-lock/badge.svg?branch=master&service=github
     :alt: Coverage Status
     :target: https://coveralls.io/r/ionelmc/python-redis-lock
+
+.. |codecov| image:: https://codecov.io/github/ionelmc/python-redis-lock/coverage.svg?branch=master
+    :alt: Coverage Status
+    :target: https://codecov.io/github/ionelmc/python-redis-lock
 
 .. |landscape| image:: https://landscape.io/github/ionelmc/python-redis-lock/master/landscape.svg?style=flat
     :target: https://landscape.io/github/ionelmc/python-redis-lock/master
     :alt: Code Quality Status
 
-.. |version| image:: http://img.shields.io/pypi/v/python-redis-lock.png?style=flat
+.. |codacy| image:: https://img.shields.io/codacy/REPLACE_WITH_PROJECT_ID.svg?style=flat
+    :target: https://www.codacy.com/app/ionelmc/python-redis-lock
+    :alt: Codacy Code Quality Status
+
+.. |codeclimate| image:: https://codeclimate.com/github/ionelmc/python-redis-lock/badges/gpa.svg
+   :target: https://codeclimate.com/github/ionelmc/python-redis-lock
+   :alt: CodeClimate Quality Status
+.. |version| image:: https://img.shields.io/pypi/v/python-redis-lock.svg?style=flat
     :alt: PyPI Package latest release
     :target: https://pypi.python.org/pypi/python-redis-lock
 
-.. |downloads| image:: http://img.shields.io/pypi/dm/python-redis-lock.png?style=flat
+.. |downloads| image:: https://img.shields.io/pypi/dm/python-redis-lock.svg?style=flat
     :alt: PyPI Package monthly downloads
     :target: https://pypi.python.org/pypi/python-redis-lock
 
-.. |wheel| image:: https://pypip.in/wheel/python-redis-lock/badge.png?style=flat
+.. |wheel| image:: https://img.shields.io/pypi/wheel/python-redis-lock.svg?style=flat
     :alt: PyPI Wheel
     :target: https://pypi.python.org/pypi/python-redis-lock
 
-.. |supported-versions| image:: https://pypip.in/py_versions/python-redis-lock/badge.png?style=flat
+.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/python-redis-lock.svg?style=flat
     :alt: Supported versions
     :target: https://pypi.python.org/pypi/python-redis-lock
 
-.. |supported-implementations| image:: https://pypip.in/implementation/python-redis-lock/badge.png?style=flat
-    :alt: Supported imlementations
+.. |supported-implementations| image:: https://img.shields.io/pypi/implementation/python-redis-lock.svg?style=flat
+    :alt: Supported implementations
     :target: https://pypi.python.org/pypi/python-redis-lock
 
-.. |scrutinizer| image:: https://img.shields.io/scrutinizer/g/ionelmc/python-redis-lock/master.png?style=flat
-    :alt: Scrtinizer Status
+.. |scrutinizer| image:: https://img.shields.io/scrutinizer/g/ionelmc/python-redis-lock/master.svg?style=flat
+    :alt: Scrutinizer Status
     :target: https://scrutinizer-ci.com/g/ionelmc/python-redis-lock/
 
 Lock context manager implemented via redis SETNX/BLPOP.
