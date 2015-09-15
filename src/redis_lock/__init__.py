@@ -76,7 +76,7 @@ class Lock(object):
         self._signal = 'lock-signal:'+name
         self._lock_renewal_interval = expire*2/3 if auto_renewal else None
         self._lock_renewal_thread = None
-        self._timeout = timeout
+        self._timeout = timeout if timeout is None else int(timeout)
 
     def reset(self):
         """
@@ -98,15 +98,13 @@ class Lock(object):
         if self._held:
             raise AlreadyAcquired("Already aquired from this Lock instance.")
 
-        if timeout is None:
-            timeout = self._timeout
-
         busy = True
+        timeout = self._timeout if timeout is None else int(timeout)
         while busy:
             busy = not self._client.set(self._name, self._id, nx=True, ex=self._expire)
             if busy:
                 if blocking:
-                    timed_out = not self._client.blpop(self._signal, timeout or 0)
+                    timed_out = not self._client.blpop(self._signal, timeout or self._expire or 0)
                     if timeout and timed_out:
                         return False
                 else:
