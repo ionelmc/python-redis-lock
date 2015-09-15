@@ -166,13 +166,16 @@ class Lock(object):
         max_retries = self._blocking and 1 or self._max_retries
         retries = 0
         while retries < max_retries:
-            if not self.acquire(blocking=self._blocking):
+            lock = self.acquire()
+            if lock:
+                return self
+            else:
                 retries += 1
 
             if retries < max_retries:
                 time.sleep(self._retry_interval)
 
-        assert self.acquire(blocking=self._blocking)
+        assert lock
         return self
 
     def __exit__(self, exc_type=None, exc_value=None, traceback=None, force=False):
