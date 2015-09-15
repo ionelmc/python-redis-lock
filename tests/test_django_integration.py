@@ -1,10 +1,20 @@
-from django.core.cache import cache
+import pytest
+
+try:
+    import django
+except ImportError:
+    django = None
+else:
+    from django.core.cache import cache
 
 
+@pytest.mark.skipif("not django")
 def test_django_works(redis_server):
     with cache.lock('whateva'):
         pass
 
+
+@pytest.mark.skipif("not django")
 def test_reset_all(redis_server):
     lock1 = cache.lock("foobar1")
     lock2 = cache.lock("foobar2")
