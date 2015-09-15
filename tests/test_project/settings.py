@@ -75,8 +75,5 @@ CACHES = {
     "default": {
         "BACKEND": "redis_lock.django_cache.RedisCache",
         "LOCATION": "unix://" + UDS_PATH,
-        "OPTIONS": {
-            "CLIENT_CLASS": "redis_cache.client.DefaultClient",
-        }
     }
 }
