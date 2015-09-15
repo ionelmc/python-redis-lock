@@ -11,7 +11,8 @@ from process_tests import TestProcess
 from process_tests import wait_for_strings
 from redis import StrictRedis
 
-from redis_lock import Lock, AlreadyAcquired, NotAcquired, InterruptableThread
+from redis_lock import (Lock, AlreadyAcquired, NotAcquired, InterruptableThread,
+                        TimeoutIsGreaterThanExpire, TimeoutNotUsable, InvalidTimeout)
 from redis_lock import reset_all
 
 from conf import TIMEOUT
@@ -61,6 +62,41 @@ def test_no_block(conn):
                     'acquire=>False',
                     'DIED.',
                 )
+
+
+def test_timeout(conn):
+    with TestProcess(sys.executable, HELPER, 'test_timeout') as proc:
+        with dump_on_error(proc.read):
+                name = 'lock:foobar'
+                wait_for_strings(
+                    proc.read, TIMEOUT,
+                    'Getting %r ...' % name,
+                    'Got lock for %r.' % name,
+                )
+                lock = Lock(conn, "foobar")
+                assert lock.acquire(blocking=True, timeout=1) == False
+
+
+def test_not_usable_timeout(conn):
+    lock = Lock(conn, "foobar")
+    with pytest.raises(TimeoutNotUsable):
+        lock.acquire(blocking=False, timeout=1)
+
+
+def test_expire_less_than_timeout(conn):
+    lock = Lock(conn, "foobar", expire=1)
+    with pytest.raises(TimeoutIsGreaterThanExpire):
+        lock.acquire(blocking=True, timeout=2)
+
+
+def test_invalid_timeout(conn):
+    lock = Lock(conn, "foobar")
+    with pytest.raises(InvalidTimeout):
+        lock.acquire(blocking=True, timeout=0)
+
+    lock = Lock(conn, "foobar")
+    with pytest.raises(InvalidTimeout):
+        lock.acquire(blocking=True, timeout=-1)
 
 
 def test_expire(conn):
@@ -137,6 +173,7 @@ def test_no_overlap(redis_server):
                             print("[%s/%s]" % (event, other))
                             raise
 
+
 def test_reset(conn):
     with Lock(conn, "foobar") as lock:
         lock.reset()
@@ -182,6 +219,7 @@ def test_bogus_release(conn):
     pytest.raises(NotAcquired, lock.release)
     lock.release(force=True)
 
+
 def test_release_from_nonblocking_leaving_garbage(conn):
     for _ in range(10):
         lock = Lock(conn, 'release_from_nonblocking')
@@ -189,15 +227,18 @@ def test_release_from_nonblocking_leaving_garbage(conn):
         lock.release()
         assert conn.llen('lock-signal:release_from_nonblocking') == 1
 
+
 def test_no_auto_renewal(conn):
     lock = Lock(conn, 'lock_renewal', expire=3, auto_renewal=False)
     assert lock._lock_renewal_interval is None
     lock.acquire()
     assert lock._lock_renewal_thread is None, "No lock refresh thread should have been spawned"
 
+
 def test_auto_renewal_bad_values(conn):
     with pytest.raises(ValueError):
         Lock(conn, 'lock_renewal', expire=None, auto_renewal=True)
+
 
 def test_auto_renewal(conn):
     lock = Lock(conn, 'lock_renewal', expire=3, auto_renewal=True)
