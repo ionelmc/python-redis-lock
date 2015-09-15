@@ -55,7 +55,7 @@ setup(
         'Topic :: Utilities',
     ],
     keywords=[
-        # eg: 'keyword1', 'keyword2', 'keyword3',
+        'redis', 'lock',
     ],
     install_requires=[
         'redis>=2.10.0',
