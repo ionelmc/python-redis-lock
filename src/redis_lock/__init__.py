@@ -39,7 +39,8 @@ class Lock(object):
     A Lock context manager implemented via redis SETNX/BLPOP.
     """
 
-    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False):
+    def __init__(self, redis_client, name, expire=None, id=None,
+                 auto_renewal=False, timeout=None):
         """
         :param redis_client:
             An instance of :class:`~StrictRedis`.
@@ -55,6 +56,8 @@ class Lock(object):
             If set to True, Lock will automatically renew the lock so that it
             doesn't expire for as long as the lock is held (acquire() called
             or running in a context manager).
+        :param timeout:
+            An integer value specifying the maximum number of seconds to block.
 
             Implementation note: Renewal will happen using a daemon thread with
             an interval of expire*2/3. If wishing to use a different renewal
@@ -73,6 +76,7 @@ class Lock(object):
         self._signal = 'lock-signal:'+name
         self._lock_renewal_interval = expire*2/3 if auto_renewal else None
         self._lock_renewal_thread = None
+        self._timeout = timeout
 
     def reset(self):
         """
@@ -88,18 +92,23 @@ class Lock(object):
     def get_owner_id(self):
         return self._client.get(self._name)
 
-    def acquire(self, blocking=True):
+    def acquire(self, blocking=True, timeout=None):
         logger.debug("Getting %r ...", self._name)
 
         if self._held:
             raise AlreadyAcquired("Already aquired from this Lock instance.")
+
+        if timeout is None:
+            timeout = self._timeout
 
         busy = True
         while busy:
             busy = not self._client.set(self._name, self._id, nx=True, ex=self._expire)
             if busy:
                 if blocking:
-                    self._client.blpop(self._signal, self._expire or 0)
+                    timed_out = not self._client.blpop(self._signal, timeout or 0)
+                    if timeout and timed_out:
+                        return False
                 else:
                     logger.debug("Failed to get %r.", self._name)
                     return False
