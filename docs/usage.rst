@@ -24,7 +24,7 @@ Blocking lock with timeout::
     else:
         print("Someone else has the lock.")
 
-Non-locking lock::
+Non-blocking lock::
 
     conn = StrictRedis()
     lock = redis_lock.Lock(conn, "name-of-the-lock"):
