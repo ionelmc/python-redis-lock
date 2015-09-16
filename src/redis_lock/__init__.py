@@ -34,6 +34,18 @@ class AlreadyStarted(RuntimeError):
     pass
 
 
+class TimeoutNotUsable(RuntimeError):
+    pass
+
+
+class InvalidTimeout(RuntimeError):
+    pass
+
+
+class TimeoutIsGreaterThanExpire(RuntimeError):
+    pass
+
+
 class Lock(object):
     """
     A Lock context manager implemented via redis SETNX/BLPOP.
@@ -88,18 +100,39 @@ class Lock(object):
     def get_owner_id(self):
         return self._client.get(self._name)
 
-    def acquire(self, blocking=True):
+    def acquire(self, blocking=True, timeout=None):
+        """
+        :param blocking:
+            Boolean value specifying whether lock should be blocking or not.
+        :param timeout:
+            An integer value specifying the maximum number of seconds to block.
+        """
         logger.debug("Getting %r ...", self._name)
 
         if self._held:
             raise AlreadyAcquired("Already aquired from this Lock instance.")
 
+        if not blocking and timeout is not None:
+            raise TimeoutNotUsable("Timeout cannot be used if blocking=False")
+
+        timeout = timeout if timeout is None else int(timeout)
+        if timeout is not None and timeout <= 0:
+            raise InvalidTimeout("Timeout (%d) cannot be less than or equal to 0"
+                                 % timeout)
+
+        if timeout and self._expire and timeout > self._expire:
+            raise TimeoutIsGreaterThanExpire("Timeout (%d) cannot be greater than expire (%d)"
+                                             % (timeout, self._expire))
+
         busy = True
+        blpop_timeout = timeout or self._expire or 0
         while busy:
             busy = not self._client.set(self._name, self._id, nx=True, ex=self._expire)
             if busy:
                 if blocking:
-                    self._client.blpop(self._signal, self._expire or 0)
+                    timed_out = not self._client.blpop(self._signal, blpop_timeout)
+                    if timeout and timed_out:
+                        return False
                 else:
                     logger.debug("Failed to get %r.", self._name)
                     return False

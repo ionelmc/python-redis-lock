@@ -191,6 +191,7 @@ Features
 
 * based on the standard SETNX recipe
 * optional expiry
+* optional timeout
 * optional lock renewal (use a low expire but keep the lock active)
 * no spinloops at acquire
 
