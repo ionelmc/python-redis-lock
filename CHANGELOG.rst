@@ -2,6 +2,11 @@
 Changelog
 =========
 
+2.3.0 (2015-09-16)
+------------------
+
+* Added the ``timeout`` option. Contributed by Victor Torres in `#20 <https://github.com/ionelmc/python-redis-lock/pull/20>`_.
+
 2.2.0 (2015-08-19)
 ------------------
 

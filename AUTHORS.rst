@@ -7,3 +7,4 @@ Authors
 * Corey Farwell - http://rwell.org
 * Yokotoka - http://yokotoka.ru
 * Jardel Weyrich - http://twitter.com/jweyrich
+* Victor Torres - http://github.com/victor-torres
