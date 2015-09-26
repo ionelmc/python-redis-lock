@@ -186,7 +186,8 @@ class Lock(object):
         logger.debug("Lock refresher has stopped")
 
     def __enter__(self):
-        assert self.acquire(blocking=True)
+        acquired = self.acquire(blocking=True)
+        assert acquired, "Lock wasn't acquired, but blocking=True"
         return self
 
     def __exit__(self, exc_type=None, exc_value=None, traceback=None, force=False):
