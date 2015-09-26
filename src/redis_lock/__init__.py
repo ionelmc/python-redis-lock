@@ -124,13 +124,14 @@ class Lock(object):
 
         busy = True
         blpop_timeout = timeout or self._expire or 0
+        timed_out = False
         while busy:
             busy = not self._client.set(self._name, self._id, nx=True, ex=self._expire)
             if busy:
-                if blocking:
+                if timed_out:
+                    return False
+                elif blocking:
                     timed_out = not self._client.blpop(self._signal, blpop_timeout)
-                    if timeout and timed_out:
-                        return False
                 else:
                     logger.debug("Failed to get %r.", self._name)
                     return False
