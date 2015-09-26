@@ -73,19 +73,19 @@ def test_no_block(conn):
 def test_timeout(conn):
     with Lock(conn, "foobar"):
         lock = Lock(conn, "foobar")
-        assert lock.acquire(blocking=True, timeout=1) == False
+        assert lock.acquire(timeout=1) == False
 
 
 def test_timeout_expire(conn):
     with Lock(conn, "foobar", expire=1):
         lock = Lock(conn, "foobar")
-        assert lock.acquire(blocking=True, timeout=2)
+        assert lock.acquire(timeout=2)
 
 
 def test_timeout_expire_with_renewal(conn):
     with Lock(conn, "foobar", expire=1, auto_renewal=True):
         lock = Lock(conn, "foobar")
-        assert lock.acquire(blocking=True, timeout=2) == False
+        assert lock.acquire(timeout=2) == False
 
 
 def test_timeout_acquired(conn):
@@ -98,7 +98,7 @@ def test_timeout_acquired(conn):
                 'Got lock for %r.' % name,
             )
             lock = Lock(conn, "foobar")
-            assert lock.acquire(blocking=True, timeout=2)
+            assert lock.acquire(timeout=2)
 
 
 def test_not_usable_timeout(conn):
