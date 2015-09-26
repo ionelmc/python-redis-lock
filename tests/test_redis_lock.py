@@ -6,18 +6,23 @@ import time
 from collections import defaultdict
 
 import pytest
-from process_tests import dump_on_error
 from process_tests import TestProcess
+from process_tests import dump_on_error
 from process_tests import wait_for_strings
 from redis import StrictRedis
 
-from redis_lock import (Lock, AlreadyAcquired, NotAcquired, InterruptableThread,
-                        TimeoutIsGreaterThanExpire, TimeoutNotUsable, InvalidTimeout)
+from redis_lock import AlreadyAcquired
+from redis_lock import InterruptableThread
+from redis_lock import InvalidTimeout
+from redis_lock import Lock
+from redis_lock import NotAcquired
+from redis_lock import TimeoutIsGreaterThanExpire
+from redis_lock import TimeoutNotUsable
 from redis_lock import reset_all
 
+from conf import HELPER
 from conf import TIMEOUT
 from conf import UDS_PATH
-from conf import HELPER
 
 
 @pytest.yield_fixture
