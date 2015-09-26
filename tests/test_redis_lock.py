@@ -16,7 +16,7 @@ from redis_lock import InterruptableThread
 from redis_lock import InvalidTimeout
 from redis_lock import Lock
 from redis_lock import NotAcquired
-from redis_lock import TimeoutIsGreaterThanExpire
+from redis_lock import TimeoutTooLarge
 from redis_lock import TimeoutNotUsable
 from redis_lock import reset_all
 
@@ -91,7 +91,7 @@ def test_not_usable_timeout(conn):
 
 def test_expire_less_than_timeout(conn):
     lock = Lock(conn, "foobar", expire=1)
-    with pytest.raises(TimeoutIsGreaterThanExpire):
+    with pytest.raises(TimeoutTooLarge):
         lock.acquire(blocking=True, timeout=2)
 
 

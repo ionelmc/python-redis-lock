@@ -42,7 +42,7 @@ class InvalidTimeout(RuntimeError):
     pass
 
 
-class TimeoutIsGreaterThanExpire(RuntimeError):
+class TimeoutTooLarge(RuntimeError):
     pass
 
 
@@ -110,19 +110,17 @@ class Lock(object):
         logger.debug("Getting %r ...", self._name)
 
         if self._held:
-            raise AlreadyAcquired("Already aquired from this Lock instance.")
+            raise AlreadyAcquired("Already acquired from this Lock instance.")
 
         if not blocking and timeout is not None:
             raise TimeoutNotUsable("Timeout cannot be used if blocking=False")
 
         timeout = timeout if timeout is None else int(timeout)
         if timeout is not None and timeout <= 0:
-            raise InvalidTimeout("Timeout (%d) cannot be less than or equal to 0"
-                                 % timeout)
+            raise InvalidTimeout("Timeout (%d) cannot be less than or equal to 0" % timeout)
 
         if timeout and self._expire and timeout > self._expire:
-            raise TimeoutIsGreaterThanExpire("Timeout (%d) cannot be greater than expire (%d)"
-                                             % (timeout, self._expire))
+            raise TimeoutTooLarge("Timeout (%d) cannot be greater than expire (%d)" % (timeout, self._expire))
 
         busy = True
         blpop_timeout = timeout or self._expire or 0
