@@ -202,7 +202,9 @@ class Lock(object):
             logger.warn("UNLOCK_SCRIPT not cached.")
             self._client.eval(UNLOCK_SCRIPT, 2, self._name, self._signal, self._id)
         self._held = False
-    release = __exit__
+
+    def release(self, force=False):
+        return self.__exit__(force=force)
 
 
 class InterruptableThread(threading.Thread):
