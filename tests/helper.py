@@ -36,7 +36,7 @@ if __name__ == '__main__':
     elif test_name == 'test_timeout':
         conn = StrictRedis(unix_socket_path=UDS_PATH)
         with Lock(conn, "foobar"):
-            time.sleep(2)
+            time.sleep(1)
     elif test_name == 'test_expire':
         conn = StrictRedis(unix_socket_path=UDS_PATH)
         with Lock(conn, "foobar", expire=TIMEOUT/4):

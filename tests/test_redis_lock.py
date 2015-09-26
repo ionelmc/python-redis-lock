@@ -9,6 +9,7 @@ import pytest
 from process_tests import TestProcess
 from process_tests import dump_on_error
 from process_tests import wait_for_strings
+
 from redis import StrictRedis
 
 from redis_lock import AlreadyAcquired
@@ -19,7 +20,6 @@ from redis_lock import NotAcquired
 from redis_lock import TimeoutTooLarge
 from redis_lock import TimeoutNotUsable
 from redis_lock import reset_all
-
 from conf import HELPER
 from conf import TIMEOUT
 from conf import UDS_PATH
@@ -71,16 +71,34 @@ def test_no_block(conn):
 
 
 def test_timeout(conn):
+    with Lock(conn, "foobar"):
+        lock = Lock(conn, "foobar")
+        assert lock.acquire(blocking=True, timeout=1) == False
+
+
+def test_timeout_expire(conn):
+    with Lock(conn, "foobar", expire=1):
+        lock = Lock(conn, "foobar")
+        assert lock.acquire(blocking=True, timeout=2)
+
+
+def test_timeout_expire_with_renewal(conn):
+    with Lock(conn, "foobar", expire=1, auto_renewal=True):
+        lock = Lock(conn, "foobar")
+        assert lock.acquire(blocking=True, timeout=2) == False
+
+
+def test_timeout_acquired(conn):
     with TestProcess(sys.executable, HELPER, 'test_timeout') as proc:
         with dump_on_error(proc.read):
-                name = 'lock:foobar'
-                wait_for_strings(
-                    proc.read, TIMEOUT,
-                    'Getting %r ...' % name,
-                    'Got lock for %r.' % name,
-                )
-                lock = Lock(conn, "foobar")
-                assert lock.acquire(blocking=True, timeout=1) == False
+            name = 'lock:foobar'
+            wait_for_strings(
+                proc.read, TIMEOUT,
+                'Getting %r ...' % name,
+                'Got lock for %r.' % name,
+            )
+            lock = Lock(conn, "foobar")
+            assert lock.acquire(blocking=True, timeout=2)
 
 
 def test_not_usable_timeout(conn):
