@@ -153,7 +153,9 @@ class Lock(object):
         log.debug("Exit requested, stopping lock refreshing")
 
     def _start_lock_renewer(self):
-        """Start the lock refresher"""
+        """
+        Starts the lock refresher thread.
+        """
         if self._lock_renewal_thread is not None:
             raise AlreadyStarted("Lock refresh thread already started")
 
@@ -170,7 +172,11 @@ class Lock(object):
         self._lock_renewal_thread.start()
 
     def _stop_lock_renewer(self):
-        """Stop the lock refresher"""
+        """
+        Stop the lock renewer.
+
+        This signals the renewal thread and waits for its exit.
+        """
         if self._lock_renewal_thread is None or not self._lock_renewal_thread.is_alive():
             return
         logger.debug("Signalling the lock refresher to stop")
