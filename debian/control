@@ -1,0 +1,15 @@
+Source: python-redis-lock
+Priority: optional
+Section: python
+Maintainer: Olivier Roussy <olivier@gandi.net>
+Build-Depends: debhelper (>= 8),
+ python (>= 2.7)
+Build-Depends-Indep: python-setuptools
+Standards-Version: 3.9.3
+X-Python-Version: >= 2.7
+
+Package: python-redis-lock
+Pre-Depends: adduser (>= 3.40)
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends}
+Description: Lock context manager implemented via redis SET NX EX and BLPOP.
