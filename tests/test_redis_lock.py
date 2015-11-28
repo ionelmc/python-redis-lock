@@ -277,3 +277,12 @@ def test_auto_renewal(conn):
 
     lock.release()
     assert lock._lock_renewal_thread is None
+
+
+def test_signal_expiration(conn):
+    """Signal keys expire within two seconds after releasing the lock."""
+    lock = Lock(conn, 'signal_expiration')
+    lock.acquire()
+    lock.release()
+    time.sleep(2)
+    assert conn.llen('lock-signal:signal_expiration') == 0
