@@ -38,8 +38,10 @@ def redis_server(scope='module'):
 
 
 @pytest.fixture(scope='function')
-def conn(redis_server):
-    return StrictRedis(unix_socket_path=UDS_PATH)
+def conn(request, redis_server):
+    conn_ = StrictRedis(unix_socket_path=UDS_PATH)
+    request.addfinalizer(conn_.flushdb)
+    return conn_
 
 
 def test_simple(redis_server):
