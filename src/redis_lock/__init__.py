@@ -205,6 +205,13 @@ class Lock(object):
         self._held = False
 
     def release(self, force=False):
+        """Releases the lock, that was acquired in the same Python context.
+
+        :param force:
+            If ``False`` - fail with exception if this instance was not in
+            acquired state in the same Python context.
+            If ``True`` - fail silently.
+        """
         return self.__exit__(force=force)
 
 
