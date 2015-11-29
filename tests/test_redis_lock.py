@@ -39,10 +39,19 @@ def redis_server(scope='module'):
 
 
 @pytest.fixture(scope='function')
-def conn(request, redis_server):
-    conn_ = StrictRedis(unix_socket_path=UDS_PATH)
-    request.addfinalizer(conn_.flushdb)
-    return conn_
+def make_conn(request, redis_server):
+    """Redis connection factory."""
+    def make_conn_factory():
+        conn_ = StrictRedis(unix_socket_path=UDS_PATH)
+        request.addfinalizer(conn_.flushdb)
+
+        return conn_
+    return make_conn_factory
+
+
+@pytest.fixture(scope='function')
+def conn(request, make_conn):
+    return make_conn()
 
 
 def test_simple(redis_server):
@@ -191,15 +200,15 @@ def test_plain(conn):
 def test_no_overlap(redis_server):
     """
     This test tries to simulate contention: lots of clients trying to acquire at the same time.
-    
-    If there would be a bug that would allow two clients to hold the lock at the same time it 
+
+    If there would be a bug that would allow two clients to hold the lock at the same time it
     would most likely regress this test.
-    
-    The code here mostly tries to parse out the pid of the process and the time when it got and 
+
+    The code here mostly tries to parse out the pid of the process and the time when it got and
     released the lock. If there's is overlap (eg: pid1.start < pid2.start < pid1.end) then we
     got a very bad regression on our hands ...
-    
-    The subprocess being run (check helper.py) will fork bunch of processes and will try to 
+
+    The subprocess being run (check helper.py) will fork bunch of processes and will try to
     syncronize them (using the builting sched) to try to acquire the lock at the same time.
     """
     with TestProcess(sys.executable, HELPER, 'test_no_overlap') as proc:
@@ -232,7 +241,7 @@ def test_no_overlap(redis_server):
                     events[pid].end = time
             assert len(events) == 125
 
-            # not very smart but we don't have millions of events so it's 
+            # not very smart but we don't have millions of events so it's
             # ok - compare all the events with all the other events:
             for event in events.values():
                 for other in events.values():
