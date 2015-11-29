@@ -358,3 +358,52 @@ def test_signal_expiration(conn):
     lock.release()
     time.sleep(2)
     assert conn.llen('lock-signal:signal_expiration') == 0
+
+
+def test_reset_signalizes(make_conn, make_process):
+    """Call to reset() causes LPUSH to signal key, so blocked waiters
+    become unblocked."""
+    def workerfn(unblocked):
+        conn = make_conn()
+        lock = Lock(conn, 'lock')
+        if lock.acquire():
+            unblocked.value = 1
+
+    unblocked = multiprocessing.Value('B', 0)
+    conn = make_conn()
+    lock = Lock(conn, 'lock')
+    lock.acquire()
+
+    worker = make_process(target=workerfn, args=(unblocked,))
+    worker.start()
+    worker.join(0.5)
+    lock.reset()
+    worker.join(0.5)
+
+    assert unblocked.value == 1
+
+
+def test_reset_all_signalizes(make_conn, make_process):
+    """Call to reset_all() causes LPUSH to all signal keys, so blocked waiters
+    become unblocked."""
+    def workerfn(unblocked):
+        conn = make_conn()
+        lock1 = Lock(conn, 'lock1')
+        lock2 = Lock(conn, 'lock2')
+        if lock1.acquire() and lock2.acquire():
+            unblocked.value = 1
+
+    unblocked = multiprocessing.Value('B', 0)
+    conn = make_conn()
+    lock1 = Lock(conn, 'lock1')
+    lock2 = Lock(conn, 'lock2')
+    lock1.acquire()
+    lock2.acquire()
+
+    worker = make_process(target=workerfn, args=(unblocked,))
+    worker.start()
+    worker.join(0.5)
+    reset_all(conn)
+    worker.join(0.5)
+
+    assert unblocked.value == 1
