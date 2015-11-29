@@ -19,6 +19,7 @@ from redis_lock import Lock
 from redis_lock import NotAcquired
 from redis_lock import TimeoutTooLarge
 from redis_lock import TimeoutNotUsable
+from redis_lock import NotExpirable
 from redis_lock import reset_all
 from conf import HELPER
 from conf import TIMEOUT
@@ -38,8 +39,10 @@ def redis_server(scope='module'):
 
 
 @pytest.fixture(scope='function')
-def conn(redis_server):
-    return StrictRedis(unix_socket_path=UDS_PATH)
+def conn(request, redis_server):
+    conn_ = StrictRedis(unix_socket_path=UDS_PATH)
+    request.addfinalizer(conn_.flushdb)
+    return conn_
 
 
 def test_simple(redis_server):
@@ -141,6 +144,36 @@ def test_expire(conn):
         assert lock.acquire(blocking=False) == True
     finally:
         lock.release()
+
+
+def test_extend(conn):
+    name = 'foobar'
+    key_name = 'lock:' + name
+    with Lock(conn, name, expire=100) as lock:
+        assert conn.ttl(key_name) <= 100
+
+        lock.extend(expire=1000)
+        assert conn.ttl(key_name) > 100
+
+
+def test_extend_lock_default_expire(conn):
+    name = 'foobar'
+    key_name = 'lock:' + name
+    with Lock(conn, name, expire=1000) as lock:
+        time.sleep(3)
+        assert conn.ttl(key_name) <= 997
+        lock.extend()
+        assert 997 < conn.ttl(key_name) <= 1000
+
+
+def test_extend_lock_without_expire_fail(conn):
+    name = 'foobar'
+    with Lock(conn, name) as lock:
+        with pytest.raises(NotExpirable):
+            lock.extend(expire=1000)
+
+        with pytest.raises(NotExpirable):
+            lock.extend()
 
 
 def test_double_acquire(conn):

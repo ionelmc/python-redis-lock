@@ -46,6 +46,10 @@ class TimeoutTooLarge(RuntimeError):
     pass
 
 
+class NotExpirable(RuntimeError):
+    pass
+
+
 class Lock(object):
     """
     A Lock context manager implemented via redis SETNX/BLPOP.
@@ -142,6 +146,20 @@ class Lock(object):
             self._start_lock_renewer()
         return True
 
+    def extend(self, expire=None):
+        """Extends expiration time of the lock.
+
+        :param expire:
+            New expiration time. If ``None`` - `expire` provided during
+            lock initialization will be taken.
+        """
+        if self._expire is None:
+            raise NotExpirable('The lock has no expiry time, so extending it '
+                               'makes no sense.')
+        if expire is None:
+            expire = self._expire
+        self._client.set(self._name, self._id, xx=True, ex=expire)
+
     def _lock_renewer(self, interval):
         """
         Renew the lock key in redis every `interval` seconds for as long
@@ -150,7 +168,7 @@ class Lock(object):
         log = getLogger("%s.lock_refresher" % __name__)
         while not self._lock_renewal_thread.wait_for_exit_request(timeout=interval):
             log.debug("Refreshing lock")
-            self._client.set(self._name, self._id, xx=True, ex=self._expire)
+            self.extend(expire=self._expire)
         log.debug("Exit requested, stopping lock refreshing")
 
     def _start_lock_renewer(self):
