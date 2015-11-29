@@ -4,6 +4,7 @@ import os
 import sys
 import time
 from collections import defaultdict
+import multiprocessing
 
 import pytest
 from process_tests import TestProcess
@@ -52,6 +53,20 @@ def make_conn(request, redis_server):
 @pytest.fixture(scope='function')
 def conn(request, make_conn):
     return make_conn()
+
+
+@pytest.fixture
+def make_process(request):
+    """Process factory, that makes processes, that terminate themselves
+    after a test run.
+    """
+    def make_process_factory(*args, **kwargs):
+        process = multiprocessing.Process(*args, **kwargs)
+        request.addfinalizer(process.terminate)
+
+        return process
+
+    return make_process_factory
 
 
 def test_simple(redis_server):
