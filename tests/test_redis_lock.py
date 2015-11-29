@@ -270,6 +270,49 @@ def test_no_overlap(redis_server):
                             raise
 
 
+def test_no_overlap_with_mp(make_process, make_conn):
+    """
+    This test tries to simulate contention: lots of clients trying to acquire at the same time.
+
+    If there would be a bug that would allow two clients to hold the lock at the same time it
+    would most likely regress this test.
+    """
+    cond  = multiprocessing.Condition()
+    event = multiprocessing.Event()
+    count = multiprocessing.Value('H', 0)
+
+    def workerfn(cond, event, count):
+        cond.acquire()
+        lock = Lock(make_conn(), 'lock')
+        event.set()
+        cond.wait()
+
+        lock.acquire()
+
+        cond.acquire()
+        count.value += 1
+        cond.release()
+
+    workers = []
+    for _ in range(125):
+        worker = make_process(target=workerfn, args=(cond, event, count))
+        worker.start()
+        event.wait(5)
+        event.clear()
+        workers.append(worker)
+
+    time.sleep(0.5)
+    cond.acquire()
+    cond.notify_all()
+    cond.release()
+    time.sleep(0.5)
+
+    for worker in workers:
+        worker.join(0.001)
+
+    assert count.value == 1
+
+
 def test_reset(conn):
     with Lock(conn, "foobar") as lock:
         lock.reset()
