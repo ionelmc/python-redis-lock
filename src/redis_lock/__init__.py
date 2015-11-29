@@ -14,6 +14,7 @@ UNLOCK_SCRIPT = b"""
     if redis.call("get", KEYS[1]) == ARGV[1] then
         redis.call("del", KEYS[2])
         redis.call("lpush", KEYS[2], 1)
+        redis.call("expire", KEYS[2], 1)
         return redis.call("del", KEYS[1])
     else
         return 0
