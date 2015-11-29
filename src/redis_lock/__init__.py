@@ -22,6 +22,30 @@ UNLOCK_SCRIPT = b"""
 """
 UNLOCK_SCRIPT_HASH = sha1(UNLOCK_SCRIPT).hexdigest()
 
+RESET_SCRIPT = b"""
+    redis.call('del', KEYS[2])
+    redis.call('lpush', KEYS[2], 1)
+    redis.call('expire', KEYS[2], 1)
+    return redis.call('del', KEYS[1])
+"""
+
+RESET_SCRIPT_HASH = sha1(RESET_SCRIPT).hexdigest()
+
+RESET_ALL_SCRIPT = b"""
+    local locks = redis.call('keys', 'lock:*')
+    local signal
+    for _, lock in pairs(locks) do
+        signal = 'lock-signal:' .. string.sub(lock, 6)
+        redis.call('del', signal)
+        redis.call('lpush', signal, 1)
+        redis.call('expire', signal, 1)
+        redis.call('del', lock)
+    end
+    return #locks
+"""
+
+RESET_ALL_SCRIPT_HASH = sha1(RESET_ALL_SCRIPT).hexdigest()
+
 
 class AlreadyAcquired(RuntimeError):
     pass
@@ -49,6 +73,24 @@ class TimeoutTooLarge(RuntimeError):
 
 class NotExpirable(RuntimeError):
     pass
+
+
+(UNLOCK, _, _, RESET, _, _, RESET_ALL, _, _), SCRIPTS = zip(*enumerate([
+    UNLOCK_SCRIPT_HASH, UNLOCK_SCRIPT, 'UNLOCK_SCRIPT',
+    RESET_SCRIPT_HASH, RESET_SCRIPT, 'RESET_SCRIPT',
+    RESET_ALL_SCRIPT_HASH, RESET_ALL_SCRIPT, 'RESET_ALL_SCRIPT'
+]))
+
+
+def _eval_script(redis, script_id, *args, **kwargs):
+    """Tries to call ``EVALSHA`` with the `hash` and then, if it fails, calls
+    regular ``EVAL`` with the `script`.
+    """
+    try:
+        return redis.evalsha(SCRIPTS[script_id], *args, **kwargs)
+    except NoScriptError:
+        logger.warn("%s not cached.", SCRIPTS[script_id + 2])
+        return redis.eval(SCRIPTS[script_id + 1], *args, **kwargs)
 
 
 class Lock(object):
@@ -95,8 +137,7 @@ class Lock(object):
         """
         Forcibly deletes the lock. Use this with care.
         """
-        self._client.delete(self._name)
-        self._client.delete(self._signal)
+        _eval_script(self._client, RESET, 2, self._name, self._signal)
 
     @property
     def id(self):
@@ -216,11 +257,9 @@ class Lock(object):
         if self._lock_renewal_thread is not None:
             self._stop_lock_renewer()
         logger.debug("Releasing %r.", self._name)
-        try:
-            self._client.evalsha(UNLOCK_SCRIPT_HASH, 2, self._name, self._signal, self._id)
-        except NoScriptError:
-            logger.warn("UNLOCK_SCRIPT not cached.")
-            self._client.eval(UNLOCK_SCRIPT, 2, self._name, self._signal, self._id)
+        _eval_script(self._client, UNLOCK,
+                     2, self._name, self._signal, self._id)
+
         self._held = False
 
     def release(self, force=False):
@@ -276,7 +315,4 @@ def reset_all(redis_client):
     """
     Forcibly deletes all locks if its remains (like a crash reason). Use this with care.
     """
-    for lock_key in redis_client.keys('lock:*'):
-        redis_client.delete(lock_key)
-    for lock_key in redis_client.keys('lock-signal:*'):
-        redis_client.delete(lock_key)
+    _eval_script(redis_client, RESET_ALL, 0)
