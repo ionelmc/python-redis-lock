@@ -39,10 +39,19 @@ def redis_server(scope='module'):
 
 
 @pytest.fixture(scope='function')
-def conn(request, redis_server):
-    conn_ = StrictRedis(unix_socket_path=UDS_PATH)
-    request.addfinalizer(conn_.flushdb)
-    return conn_
+def make_conn(request, redis_server):
+    """Redis connection factory."""
+    def make_conn_factory():
+        conn_ = StrictRedis(unix_socket_path=UDS_PATH)
+        request.addfinalizer(conn_.flushdb)
+
+        return conn_
+    return make_conn_factory
+
+
+@pytest.fixture(scope='function')
+def conn(request, make_conn):
+    return make_conn()
 
 
 def test_simple(redis_server):
