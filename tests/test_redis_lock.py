@@ -229,10 +229,10 @@ def test_no_overlap(redis_server):
     with TestProcess(sys.executable, HELPER, 'test_no_overlap') as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
-            wait_for_strings(proc.read, TIMEOUT, 'Getting %r ...' % name)
-            wait_for_strings(proc.read, TIMEOUT, 'Got lock for %r.' % name)
-            wait_for_strings(proc.read, TIMEOUT, 'Releasing %r.' % name)
-            wait_for_strings(proc.read, TIMEOUT, 'UNLOCK_SCRIPT not cached.')
+            wait_for_strings(proc.read, 10*TIMEOUT, 'Getting %r ...' % name)
+            wait_for_strings(proc.read, 10*TIMEOUT, 'Got lock for %r.' % name)
+            wait_for_strings(proc.read, 10*TIMEOUT, 'Releasing %r.' % name)
+            wait_for_strings(proc.read, 10*TIMEOUT, 'UNLOCK_SCRIPT not cached.')
             wait_for_strings(proc.read, 10*TIMEOUT, 'DIED.')
 
             class Event(object):
