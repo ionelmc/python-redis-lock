@@ -4,6 +4,7 @@ import os
 import sys
 import time
 from collections import defaultdict
+import multiprocessing
 
 import pytest
 from process_tests import TestProcess
@@ -39,10 +40,33 @@ def redis_server(scope='module'):
 
 
 @pytest.fixture(scope='function')
-def conn(request, redis_server):
-    conn_ = StrictRedis(unix_socket_path=UDS_PATH)
-    request.addfinalizer(conn_.flushdb)
-    return conn_
+def make_conn(request, redis_server):
+    """Redis connection factory."""
+    def make_conn_factory():
+        conn_ = StrictRedis(unix_socket_path=UDS_PATH)
+        request.addfinalizer(conn_.flushdb)
+
+        return conn_
+    return make_conn_factory
+
+
+@pytest.fixture(scope='function')
+def conn(request, make_conn):
+    return make_conn()
+
+
+@pytest.fixture
+def make_process(request):
+    """Process factory, that makes processes, that terminate themselves
+    after a test run.
+    """
+    def make_process_factory(*args, **kwargs):
+        process = multiprocessing.Process(*args, **kwargs)
+        request.addfinalizer(process.terminate)
+
+        return process
+
+    return make_process_factory
 
 
 def test_simple(redis_server):
@@ -191,24 +215,24 @@ def test_plain(conn):
 def test_no_overlap(redis_server):
     """
     This test tries to simulate contention: lots of clients trying to acquire at the same time.
-    
-    If there would be a bug that would allow two clients to hold the lock at the same time it 
+
+    If there would be a bug that would allow two clients to hold the lock at the same time it
     would most likely regress this test.
-    
-    The code here mostly tries to parse out the pid of the process and the time when it got and 
+
+    The code here mostly tries to parse out the pid of the process and the time when it got and
     released the lock. If there's is overlap (eg: pid1.start < pid2.start < pid1.end) then we
     got a very bad regression on our hands ...
-    
-    The subprocess being run (check helper.py) will fork bunch of processes and will try to 
+
+    The subprocess being run (check helper.py) will fork bunch of processes and will try to
     syncronize them (using the builting sched) to try to acquire the lock at the same time.
     """
     with TestProcess(sys.executable, HELPER, 'test_no_overlap') as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
-            wait_for_strings(proc.read, TIMEOUT, 'Getting %r ...' % name)
-            wait_for_strings(proc.read, TIMEOUT, 'Got lock for %r.' % name)
-            wait_for_strings(proc.read, TIMEOUT, 'Releasing %r.' % name)
-            wait_for_strings(proc.read, TIMEOUT, 'UNLOCK_SCRIPT not cached.')
+            wait_for_strings(proc.read, 10*TIMEOUT, 'Getting %r ...' % name)
+            wait_for_strings(proc.read, 10*TIMEOUT, 'Got lock for %r.' % name)
+            wait_for_strings(proc.read, 10*TIMEOUT, 'Releasing %r.' % name)
+            wait_for_strings(proc.read, 10*TIMEOUT, 'UNLOCK_SCRIPT not cached.')
             wait_for_strings(proc.read, 10*TIMEOUT, 'DIED.')
 
             class Event(object):
@@ -232,7 +256,7 @@ def test_no_overlap(redis_server):
                     events[pid].end = time
             assert len(events) == 125
 
-            # not very smart but we don't have millions of events so it's 
+            # not very smart but we don't have millions of events so it's
             # ok - compare all the events with all the other events:
             for event in events.values():
                 for other in events.values():
@@ -244,6 +268,44 @@ def test_no_overlap(redis_server):
                         except:
                             print("[%s/%s]" % (event, other))
                             raise
+
+
+NWORKERS = 125
+
+def test_no_overlap2(make_process, make_conn):
+    """The second version of contention test, that uses multiprocessing."""
+    go         = multiprocessing.Event()
+    count_lock = multiprocessing.Lock()
+    count      = multiprocessing.Value('H', 0)
+
+    def workerfn(go, count_lock, count):
+        redis_lock = Lock(make_conn(), 'lock')
+        with count_lock:
+            count.value += 1
+
+        go.wait()
+
+        if redis_lock.acquire(blocking=True):
+            with count_lock:
+                count.value += 1
+
+    for _ in range(NWORKERS):
+        make_process(target=workerfn, args=(go, count_lock, count)).start()
+
+    # Wait until all workers will come to point when they are ready to acquire
+    # the redis lock.
+    while count.value < NWORKERS:
+        time.sleep(0.05)
+
+    # Then "count" will be used as counter of workers, which acquired
+    # redis-lock with success.
+    count.value = 0
+
+    go.set()
+
+    time.sleep(0.5)
+
+    assert count.value == 1
 
 
 def test_reset(conn):
@@ -334,3 +396,52 @@ def test_signal_expiration(conn):
     lock.release()
     time.sleep(2)
     assert conn.llen('lock-signal:signal_expiration') == 0
+
+
+def test_reset_signalizes(make_conn, make_process):
+    """Call to reset() causes LPUSH to signal key, so blocked waiters
+    become unblocked."""
+    def workerfn(unblocked):
+        conn = make_conn()
+        lock = Lock(conn, 'lock')
+        if lock.acquire():
+            unblocked.value = 1
+
+    unblocked = multiprocessing.Value('B', 0)
+    conn = make_conn()
+    lock = Lock(conn, 'lock')
+    lock.acquire()
+
+    worker = make_process(target=workerfn, args=(unblocked,))
+    worker.start()
+    worker.join(0.5)
+    lock.reset()
+    worker.join(0.5)
+
+    assert unblocked.value == 1
+
+
+def test_reset_all_signalizes(make_conn, make_process):
+    """Call to reset_all() causes LPUSH to all signal keys, so blocked waiters
+    become unblocked."""
+    def workerfn(unblocked):
+        conn = make_conn()
+        lock1 = Lock(conn, 'lock1')
+        lock2 = Lock(conn, 'lock2')
+        if lock1.acquire() and lock2.acquire():
+            unblocked.value = 1
+
+    unblocked = multiprocessing.Value('B', 0)
+    conn = make_conn()
+    lock1 = Lock(conn, 'lock1')
+    lock2 = Lock(conn, 'lock2')
+    lock1.acquire()
+    lock2.acquire()
+
+    worker = make_process(target=workerfn, args=(unblocked,))
+    worker.start()
+    worker.join(0.5)
+    reset_all(conn)
+    worker.join(0.5)
+
+    assert unblocked.value == 1
