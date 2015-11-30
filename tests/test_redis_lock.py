@@ -270,6 +270,44 @@ def test_no_overlap(redis_server):
                             raise
 
 
+NWORKERS = 125
+
+def test_no_overlap2(make_process, make_conn):
+    """The second version of contention test, that uses multiprocessing."""
+    go         = multiprocessing.Event()
+    count_lock = multiprocessing.Lock()
+    count      = multiprocessing.Value('H', 0)
+
+    def workerfn(go, count_lock, count):
+        redis_lock = Lock(make_conn(), 'lock')
+        with count_lock:
+            count.value += 1
+
+        go.wait()
+
+        if redis_lock.acquire(blocking=True):
+            with count_lock:
+                count.value += 1
+
+    for _ in range(NWORKERS):
+        make_process(target=workerfn, args=(go, count_lock, count)).start()
+
+    # Wait until all workers will come to point when they are ready to acquire
+    # the redis lock.
+    while count.value < NWORKERS:
+        time.sleep(0.05)
+
+    # Then "count" will be used as counter of workers, which acquired
+    # redis-lock with success.
+    count.value = 0
+
+    go.set()
+
+    time.sleep(0.5)
+
+    assert count.value == 1
+
+
 def test_reset(conn):
     with Lock(conn, "foobar") as lock:
         lock.reset()
