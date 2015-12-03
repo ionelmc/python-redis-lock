@@ -8,3 +8,4 @@ Authors
 * Yokotoka - http://yokotoka.ru
 * Jardel Weyrich - http://twitter.com/jweyrich
 * Victor Torres - http://github.com/victor-torres
+* Andrew Pashkin - https://github.com/AndrewPashkin

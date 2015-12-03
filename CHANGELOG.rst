@@ -2,6 +2,18 @@
 Changelog
 =========
 
+3.0.0 (unreleased)
+------------------
+
+* Changed ``release`` so that it expires signal-keys immediately. Contributed by Andrew Pashkin in `#28
+  <https://github.com/ionelmc/python-redis-lock/pull/28>`_.
+* Resetting locks (``reset`` or ``reset_all``) will release the lock. If there's someone waiting on the reset lock now it will
+  acquire it. Contributed by Andrew Pashkin in `#29 <https://github.com/ionelmc/python-redis-lock/pull/29>`_.
+* Added the ``extend`` method on ``Lock`` objects. Contributed by Andrew Pashkin in `#24
+  <https://github.com/ionelmc/python-redis-lock/pull/24>`_.
+* Documentation improvements on ``release`` method. Contributed by Andrew Pashkin in `#22
+  <https://github.com/ionelmc/python-redis-lock/pull/22>`_.
+
 2.3.0 (2015-09-27)
 ------------------
 
