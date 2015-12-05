@@ -22,6 +22,16 @@ UNLOCK_SCRIPT = b"""
 """
 UNLOCK_SCRIPT_HASH = sha1(UNLOCK_SCRIPT).hexdigest()
 
+EXTEND_SCRIPT = b"""
+    if redis.call("ttl", KEYS[1]) >= 0 then
+        redis.call("expire", KEYS[1], ARGV[1])
+        return 0
+    else
+        return -1
+    end
+"""
+EXTEND_SCRIPT_HASH = sha1(EXTEND_SCRIPT).hexdigest()
+
 RESET_SCRIPT = b"""
     redis.call('del', KEYS[2])
     redis.call('lpush', KEYS[2], 1)
@@ -75,8 +85,13 @@ class NotExpirable(RuntimeError):
     pass
 
 
-(UNLOCK, _, _, RESET, _, _, RESET_ALL, _, _), SCRIPTS = zip(*enumerate([
+((UNLOCK, _, _,
+  EXTEND, _, _,
+  RESET, _, _,
+  RESET_ALL, _, _),
+SCRIPTS) = zip(*enumerate([
     UNLOCK_SCRIPT_HASH, UNLOCK_SCRIPT, 'UNLOCK_SCRIPT',
+    EXTEND_SCRIPT_HASH, EXTEND_SCRIPT, 'EXTEND_SCRIPT',
     RESET_SCRIPT_HASH, RESET_SCRIPT, 'RESET_SCRIPT',
     RESET_ALL_SCRIPT_HASH, RESET_ALL_SCRIPT, 'RESET_ALL_SCRIPT'
 ]))
@@ -195,12 +210,15 @@ class Lock(object):
             New expiration time. If ``None`` - `expire` provided during
             lock initialization will be taken.
         """
-        if self._expire is None:
-            raise NotExpirable('The lock has no expiry time, so extending it '
-                               'makes no sense.')
-        if expire is None:
+        if expire is None and self._expire is not None:
             expire = self._expire
-        self._client.set(self._name, self._id, xx=True, ex=expire)
+        elif expire is None and self._expire is None:
+            raise TypeError(
+                "To extend a lock 'expire' must be provided as an argument "
+                "to extend() method or at initialization time."
+            )
+        if _eval_script(self._client, EXTEND, 1, self._name, expire) != 0:
+            raise RuntimeError('Failed to extend lock %s' % self._name)
 
     def _lock_renewer(self, interval):
         """

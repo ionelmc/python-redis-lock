@@ -193,11 +193,27 @@ def test_extend_lock_default_expire(conn):
 def test_extend_lock_without_expire_fail(conn):
     name = 'foobar'
     with Lock(conn, name) as lock:
-        with pytest.raises(NotExpirable):
+        with pytest.raises(RuntimeError):
             lock.extend(expire=1000)
 
-        with pytest.raises(NotExpirable):
+        with pytest.raises(TypeError):
             lock.extend()
+
+
+def test_extend_another_instance(conn):
+    """It is possible to extend a lock using another instance of Lock with the
+    same name.
+    """
+    name = 'foobar'
+    key_name = 'lock:' + name
+    lock = Lock(conn, name, expire=100)
+    lock.acquire()
+    assert 0 <= conn.ttl(key_name) <= 100
+
+    another_lock = Lock(conn, name)
+    another_lock.extend(1000)
+
+    assert conn.ttl(key_name) > 100
 
 
 def test_double_acquire(conn):
