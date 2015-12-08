@@ -17,7 +17,7 @@ UNLOCK_SCRIPT = b"""
     else
         redis.call("del", KEYS[2])
         redis.call("lpush", KEYS[2], 1)
-        redis.call("expire", KEYS[2], 1)
+        redis.call("pexpire", KEYS[2], 1)
         redis.call("del", KEYS[1])
         return 0
     end
@@ -40,7 +40,7 @@ EXTEND_SCRIPT_HASH = sha1(EXTEND_SCRIPT).hexdigest()
 RESET_SCRIPT = b"""
     redis.call('del', KEYS[2])
     redis.call('lpush', KEYS[2], 1)
-    redis.call('expire', KEYS[2], 1)
+    redis.call('pexpire', KEYS[2], 1)
     return redis.call('del', KEYS[1])
 """
 
@@ -53,7 +53,7 @@ RESET_ALL_SCRIPT = b"""
         signal = 'lock-signal:' .. string.sub(lock, 6)
         redis.call('del', signal)
         redis.call('lpush', signal, 1)
-        redis.call('expire', signal, 1)
+        redis.call('pexpire', signal, 1)
         redis.call('del', lock)
     end
     return #locks

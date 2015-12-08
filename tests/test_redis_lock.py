@@ -436,11 +436,11 @@ def test_auto_renewal(conn):
 
 
 def test_signal_expiration(conn):
-    """Signal keys expire within two seconds after releasing the lock."""
+    """Signal keys expire after one millisecond after releasing the lock."""
     lock = Lock(conn, 'signal_expiration')
     lock.acquire()
     lock.release()
-    time.sleep(2)
+    time.sleep(0.002)
     assert conn.llen('lock-signal:signal_expiration') == 0
 
 
