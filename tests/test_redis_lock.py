@@ -408,14 +408,6 @@ def test_bogus_release(conn):
     lock2.release()
 
 
-def test_release_from_nonblocking_leaving_garbage(conn):
-    for _ in range(10):
-        lock = Lock(conn, 'release_from_nonblocking')
-        lock.acquire(blocking=False)
-        lock.release()
-        assert conn.llen('lock-signal:release_from_nonblocking') == 1
-
-
 def test_no_auto_renewal(conn):
     lock = Lock(conn, 'lock_renewal', expire=3, auto_renewal=False)
     assert lock._lock_renewal_interval is None
