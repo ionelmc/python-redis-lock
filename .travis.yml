@@ -53,7 +53,7 @@ before_install:
   - uname -a
   - lsb_release -a
 install:
-  - pip install tox
+  - pip install -I tox==2.2.1
   - virtualenv --version
   - easy_install --version
   - pip --version
@@ -67,4 +67,3 @@ notifications:
   email:
     on_success: never
     on_failure: always
-
