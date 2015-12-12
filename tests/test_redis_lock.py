@@ -311,7 +311,7 @@ def test_no_overlap2(make_process, make_conn):
     # Wait until all workers will come to point when they are ready to acquire
     # the redis lock.
     while count.value < NWORKERS:
-        time.sleep(0.05)
+        time.sleep(0.5)
 
     # Then "count" will be used as counter of workers, which acquired
     # redis-lock with success.
@@ -319,7 +319,7 @@ def test_no_overlap2(make_process, make_conn):
 
     go.set()
 
-    time.sleep(0.5)
+    time.sleep(1)
 
     assert count.value == 1
 
