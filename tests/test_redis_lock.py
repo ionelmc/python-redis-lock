@@ -196,8 +196,41 @@ def test_extend_lock_without_expire_fail(conn):
         with pytest.raises(NotExpirable):
             lock.extend(expire=1000)
 
-        with pytest.raises(NotExpirable):
+        with pytest.raises(TypeError):
             lock.extend()
+
+
+def test_extend_another_instance(conn):
+    """It is possible to extend a lock using another instance of Lock with the
+    same name.
+    """
+    name = 'foobar'
+    key_name = 'lock:' + name
+    lock = Lock(conn, name, id='spam', expire=100)
+    lock.acquire()
+    assert 0 <= conn.ttl(key_name) <= 100
+
+    another_lock = Lock(conn, name, id='spam')
+    another_lock.extend(1000)
+
+    assert conn.ttl(key_name) > 100
+
+
+def test_extend_another_instance_different_id_fail(conn):
+    """It is impossible to extend a lock using another instance of Lock with
+    the same name, but different id.
+    """
+    name = 'foobar'
+    key_name = 'lock:' + name
+    lock = Lock(conn, name, expire=100, id='spam')
+    lock.acquire()
+    assert 0 <= conn.ttl(key_name) <= 100
+
+    another_lock = Lock(conn, name, id='eggs')
+    with pytest.raises(NotAcquired):
+        another_lock.extend(1000)
+
+    assert conn.ttl(key_name) <= 100
 
 
 def test_double_acquire(conn):
@@ -295,7 +328,7 @@ def test_no_overlap2(make_process, make_conn):
     # Wait until all workers will come to point when they are ready to acquire
     # the redis lock.
     while count.value < NWORKERS:
-        time.sleep(0.05)
+        time.sleep(0.5)
 
     # Then "count" will be used as counter of workers, which acquired
     # redis-lock with success.
@@ -303,7 +336,7 @@ def test_no_overlap2(make_process, make_conn):
 
     go.set()
 
-    time.sleep(0.5)
+    time.sleep(1)
 
     assert count.value == 1
 

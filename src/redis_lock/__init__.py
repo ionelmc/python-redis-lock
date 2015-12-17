@@ -22,6 +22,19 @@ UNLOCK_SCRIPT = b"""
 """
 UNLOCK_SCRIPT_HASH = sha1(UNLOCK_SCRIPT).hexdigest()
 
+EXTEND_SCRIPT = b"""
+    -- Covers both cases when key doesn't exist and doesn't equal to lock's id
+    if redis.call("get", KEYS[1]) ~= ARGV[2] then
+        return -1
+    elseif redis.call("ttl", KEYS[1]) < 0 then
+        return -2
+    else
+        redis.call("expire", KEYS[1], ARGV[1])
+        return 0
+    end
+"""
+EXTEND_SCRIPT_HASH = sha1(EXTEND_SCRIPT).hexdigest()
+
 RESET_SCRIPT = b"""
     redis.call('del', KEYS[2])
     redis.call('lpush', KEYS[2], 1)
@@ -75,8 +88,13 @@ class NotExpirable(RuntimeError):
     pass
 
 
-(UNLOCK, _, _, RESET, _, _, RESET_ALL, _, _), SCRIPTS = zip(*enumerate([
+((UNLOCK, _, _,   # noqa
+  EXTEND, _, _,
+  RESET, _, _,
+  RESET_ALL, _, _),
+ SCRIPTS) = zip(*enumerate([
     UNLOCK_SCRIPT_HASH, UNLOCK_SCRIPT, 'UNLOCK_SCRIPT',
+    EXTEND_SCRIPT_HASH, EXTEND_SCRIPT, 'EXTEND_SCRIPT',
     RESET_SCRIPT_HASH, RESET_SCRIPT, 'RESET_SCRIPT',
     RESET_ALL_SCRIPT_HASH, RESET_ALL_SCRIPT, 'RESET_ALL_SCRIPT'
 ]))
@@ -195,12 +213,23 @@ class Lock(object):
             New expiration time. If ``None`` - `expire` provided during
             lock initialization will be taken.
         """
-        if self._expire is None:
-            raise NotExpirable('The lock has no expiry time, so extending it '
-                               'makes no sense.')
         if expire is None:
-            expire = self._expire
-        self._client.set(self._name, self._id, xx=True, ex=expire)
+            if self._expire is not None:
+                expire = self._expire
+            else:
+                raise TypeError(
+                    "To extend a lock 'expire' must be provided as an "
+                    "argument to extend() method or at initialization time."
+                )
+        result = _eval_script(self._client, EXTEND, 1,
+                              self._name, expire, self._id)
+        if result == 0:
+            return result
+        elif result == -1:
+            raise NotAcquired("Lock %s is not acquired" % self._name)
+        elif result == -2:
+            raise NotExpirable("Lock %s has no assigned expiration time" %
+                               self._name)
 
     def _lock_renewer(self, interval):
         """
