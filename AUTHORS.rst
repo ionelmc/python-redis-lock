@@ -9,3 +9,4 @@ Authors
 * Jardel Weyrich - http://twitter.com/jweyrich
 * Victor Torres - http://github.com/victor-torres
 * Andrew Pashkin - https://github.com/AndrewPashkin
+* Tero Vuotila - https://github.com/tvuotila

@@ -13,6 +13,8 @@ Changelog
   <https://github.com/ionelmc/python-redis-lock/pull/24>`_.
 * Documentation improvements on ``release`` method. Contributed by Andrew Pashkin in `#22
   <https://github.com/ionelmc/python-redis-lock/pull/22>`_.
+* Fixed ``acquire(block=True)`` handling when ``expire`` option was used (it wasn't blocking indefinitely). Contributed by
+  Tero Vuotila in `#35 <https://github.com/ionelmc/python-redis-lock/pull/35>`_.
 
 2.3.0 (2015-09-27)
 ------------------
