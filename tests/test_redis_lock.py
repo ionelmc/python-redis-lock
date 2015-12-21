@@ -170,6 +170,15 @@ def test_expire(conn):
         lock.release()
 
 
+def test_expire_without_timeout(conn):
+    first_lock = Lock(conn, 'expire', expire=2)
+    second_lock = Lock(conn, 'expire', expire=1)
+    first_lock.acquire()
+    assert second_lock.acquire(blocking=False) is False
+    assert second_lock.acquire() is True
+    second_lock.release()
+
+
 def test_extend(conn):
     name = 'foobar'
     key_name = 'lock:' + name
