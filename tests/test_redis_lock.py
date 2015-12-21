@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import os
+import platform
 import sys
 import time
 from collections import defaultdict
@@ -314,6 +315,7 @@ def test_no_overlap(redis_server):
 
 NWORKERS = 125
 
+@pytest.mark.skipif(platform.python_implementation() == 'PyPy', reason="This appears to be way too slow to run on PyPy")
 def test_no_overlap2(make_process, make_conn):
     """The second version of contention test, that uses multiprocessing."""
     go         = multiprocessing.Event()
