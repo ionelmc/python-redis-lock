@@ -205,7 +205,7 @@ Implementation
 
 This is how it works:
 
-.. image:: https://raw.github.com/ionelmc/python-redis-lock/master/docs/redis-lock%20diagram.png
+.. image:: https://raw.github.com/ionelmc/python-redis-lock/master/docs/redis-lock%20diagram%20(v3.0).png
     :alt: python-redis-lock flow diagram
 
 Documentation
