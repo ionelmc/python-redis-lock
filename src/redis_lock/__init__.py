@@ -24,12 +24,12 @@ UNLOCK_SCRIPT = b"""
 """
 UNLOCK_SCRIPT_HASH = sha1(UNLOCK_SCRIPT).hexdigest()
 
+# Covers both cases when key doesn't exist and doesn't equal to lock's id
 EXTEND_SCRIPT = b"""
-    -- Covers both cases when key doesn't exist and doesn't equal to lock's id
     if redis.call("get", KEYS[1]) ~= ARGV[2] then
-        return -1
+        return 1
     elseif redis.call("ttl", KEYS[1]) < 0 then
-        return -2
+        return 2
     else
         redis.call("expire", KEYS[1], ARGV[1])
         return 0
@@ -102,15 +102,18 @@ class NotExpirable(RuntimeError):
 ]))
 
 
-def _eval_script(redis, script_id, *args, **kwargs):
+def _eval_script(redis, script_id, *keys, **kwargs):
     """Tries to call ``EVALSHA`` with the `hash` and then, if it fails, calls
     regular ``EVAL`` with the `script`.
     """
+    args = kwargs.pop('args', ())
+    if kwargs:
+        raise TypeError("Unexpected keyword arguments %s" % kwargs.keys())
     try:
-        return redis.evalsha(SCRIPTS[script_id], *args, **kwargs)
+        return redis.evalsha(SCRIPTS[script_id], len(keys), *keys + args)
     except NoScriptError:
         logger.warn("%s not cached.", SCRIPTS[script_id + 2])
-        return redis.eval(SCRIPTS[script_id + 1], *args, **kwargs)
+        return redis.eval(SCRIPTS[script_id + 1], len(keys), *keys + args)
 
 
 class Lock(object):
@@ -160,7 +163,7 @@ class Lock(object):
         """
         Forcibly deletes the lock. Use this with care.
         """
-        _eval_script(self._client, RESET, 2, self._name, self._signal)
+        _eval_script(self._client, RESET, self._name, self._signal)
 
     @property
     def id(self):
@@ -226,15 +229,14 @@ class Lock(object):
                     "To extend a lock 'expire' must be provided as an "
                     "argument to extend() method or at initialization time."
                 )
-        result = _eval_script(self._client, EXTEND, 1,
-                              self._name, expire, self._id)
-        if result == 0:
-            return result
-        elif result == -1:
-            raise NotAcquired("Lock %s is not acquired" % self._name)
-        elif result == -2:
+        error = _eval_script(self._client, EXTEND, self._name, args=(expire, self._id))
+        if error == 1:
+            raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
+        elif error == 2:
             raise NotExpirable("Lock %s has no assigned expiration time" %
                                self._name)
+        elif error:
+            raise RuntimeError("Unsupported error code %s from EXTEND script"  % error)
 
     def _lock_renewer(self, interval):
         """
@@ -354,4 +356,4 @@ def reset_all(redis_client):
     """
     Forcibly deletes all locks if its remains (like a crash reason). Use this with care.
     """
-    _eval_script(redis_client, RESET_ALL, 0)
+    _eval_script(redis_client, RESET_ALL)
