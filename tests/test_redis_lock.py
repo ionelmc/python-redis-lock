@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, division
 
 import os
 import platform
@@ -105,9 +105,10 @@ def test_timeout(conn):
 
 
 def test_timeout_expire(conn):
-    with Lock(conn, "foobar", expire=1):
-        lock = Lock(conn, "foobar")
-        assert lock.acquire(timeout=2)
+    lock1 = Lock(conn, "foobar", expire=1)
+    lock1.acquire()
+    lock2 = Lock(conn, "foobar")
+    assert lock2.acquire(timeout=2)
 
 
 def test_timeout_expire_with_renewal(conn):
@@ -152,18 +153,19 @@ def test_invalid_timeout(conn):
 
 
 def test_expire(conn):
-    with Lock(conn, "foobar", expire=TIMEOUT/4):
-        with TestProcess(sys.executable, HELPER, 'test_expire') as proc:
-            with dump_on_error(proc.read):
-                name = 'lock:foobar'
-                wait_for_strings(
-                    proc.read, TIMEOUT,
-                    'Getting %r ...' % name,
-                    'Got lock for %r.' % name,
-                    'Releasing %r.' % name,
-                    'UNLOCK_SCRIPT not cached.',
-                    'DIED.',
-                )
+    lock = Lock(conn, "foobar", expire=TIMEOUT/4)
+    lock.acquire()
+    with TestProcess(sys.executable, HELPER, 'test_expire') as proc:
+        with dump_on_error(proc.read):
+            name = 'lock:foobar'
+            wait_for_strings(
+                proc.read, TIMEOUT,
+                'Getting %r ...' % name,
+                'Got lock for %r.' % name,
+                'Releasing %r.' % name,
+                'UNLOCK_SCRIPT not cached.',
+                'DIED.',
+            )
     lock = Lock(conn, "foobar")
     try:
         assert lock.acquire(blocking=False) == True
@@ -216,11 +218,11 @@ def test_extend_another_instance(conn):
     """
     name = 'foobar'
     key_name = 'lock:' + name
-    lock = Lock(conn, name, id='spam', expire=100)
+    lock = Lock(conn, name, expire=100)
     lock.acquire()
     assert 0 <= conn.ttl(key_name) <= 100
 
-    another_lock = Lock(conn, name, id='spam')
+    another_lock = Lock(conn, name, id=lock.id)
     another_lock.extend(1000)
 
     assert conn.ttl(key_name) > 100
@@ -232,15 +234,16 @@ def test_extend_another_instance_different_id_fail(conn):
     """
     name = 'foobar'
     key_name = 'lock:' + name
-    lock = Lock(conn, name, expire=100, id='spam')
+    lock = Lock(conn, name, expire=100)
     lock.acquire()
     assert 0 <= conn.ttl(key_name) <= 100
 
-    another_lock = Lock(conn, name, id='eggs')
+    another_lock = Lock(conn, name)
     with pytest.raises(NotAcquired):
         another_lock.extend(1000)
 
     assert conn.ttl(key_name) <= 100
+    assert lock.id != another_lock.id
 
 
 def test_double_acquire(conn):
@@ -353,11 +356,12 @@ def test_no_overlap2(make_process, make_conn):
 
 
 def test_reset(conn):
-    with Lock(conn, "foobar") as lock:
-        lock.reset()
-        new_lock = Lock(conn, "foobar")
-        new_lock.acquire(blocking=False)
-        new_lock.release()
+    lock = Lock(conn, "foobar")
+    lock.reset()
+    new_lock = Lock(conn, "foobar")
+    new_lock.acquire(blocking=False)
+    new_lock.release()
+    pytest.raises(NotAcquired, lock.release)
 
 
 def test_reset_all(conn):
@@ -379,8 +383,12 @@ def test_owner_id(conn):
     lock = Lock(conn, "foobar-tok", expire=TIMEOUT/4, id=unique_identifier)
     lock_id = lock.id
     assert lock_id == unique_identifier
-    lock.acquire(blocking=False)
-    assert lock.get_owner_id() == unique_identifier
+
+
+def test_get_owner_id(conn):
+    lock = Lock(conn, "foobar-tok")
+    lock.acquire()
+    assert lock.get_owner_id() == lock.id
     lock.release()
 
 
@@ -395,7 +403,9 @@ def test_token(conn):
 def test_bogus_release(conn):
     lock = Lock(conn, "foobar-tok")
     pytest.raises(NotAcquired, lock.release)
-    lock.release(force=True)
+    lock.acquire()
+    lock2 = Lock(conn, "foobar-tok", id=lock.id)
+    lock2.release()
 
 
 def test_release_from_nonblocking_leaving_garbage(conn):

@@ -51,13 +51,9 @@ The above example could be rewritten using context manager::
         time.sleep(5)
 
 In cases, where lock not necessarily in acquired state, and
-user need to ensure, that it's released, ``force`` parameter could be used::
+user need to ensure, that it has a matching ``id``, example::
 
-    lock = Lock(conn, "foo")
-    try:
-      if lock.acquire(block=False):
-        print("Got the lock. Do crazy dance")
-      else:
-        print("Didn't get the lock. Do normal dance")
-    finally:
-      lock.release(force=True)
+    lock1 = Lock(conn, "foo")
+    lock1.acquire()
+    lock2 = Lock(conn, "foo", id=lock1.id)
+    lock2.release()

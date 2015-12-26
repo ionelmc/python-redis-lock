@@ -10,13 +10,15 @@ __version__ = "2.3.0"
 
 logger = getLogger(__name__)
 
+# Check if the id match. If not, return an error code.
 UNLOCK_SCRIPT = b"""
-    if redis.call("get", KEYS[1]) == ARGV[1] then
+    if redis.call("get", KEYS[1]) ~= ARGV[1] then
+        return 1
+    else
         redis.call("del", KEYS[2])
         redis.call("lpush", KEYS[2], 1)
         redis.call("expire", KEYS[2], 1)
-        return redis.call("del", KEYS[1])
-    else
+        redis.call("del", KEYS[1])
         return 0
     end
 """
@@ -128,6 +130,9 @@ class Lock(object):
         :param id:
             The ID (redis value) the lock should have. A random value is
             generated when left at the default.
+
+            Note that if you specify this then the lock is marked as "held". Acquires
+            won't be possible.
         :param auto_renewal:
             If set to True, Lock will automatically renew the lock so that it
             doesn't expire for as long as the lock is held (acquire() called
@@ -145,7 +150,7 @@ class Lock(object):
         self._client = redis_client
         self._expire = expire if expire is None else int(expire)
         self._id = urandom(16) if id is None else id
-        self._held = False
+        self._held = id is not None
         self._name = 'lock:'+name
         self._signal = 'lock-signal:'+name
         self._lock_renewal_interval = expire*2/3 if auto_renewal else None
@@ -280,26 +285,31 @@ class Lock(object):
         assert acquired, "Lock wasn't acquired, but blocking=True"
         return self
 
-    def __exit__(self, exc_type=None, exc_value=None, traceback=None, force=False):
-        if not (self._held or force):
+    def __exit__(self, exc_type=None, exc_value=None, traceback=None):
+        self.release()
+
+    def release(self):
+        """Releases the lock, that was acquired with the same object.
+
+        .. note::
+
+            If you want to release a lock that you acquired in a different place you have two choices:
+
+            * Use ``Lock("name", id=id_from_other_place).release()``
+            * Use ``Lock("name").reset()``
+        """
+        if not self._held:
             raise NotAcquired("This Lock instance didn't acquire the lock.")
         if self._lock_renewal_thread is not None:
             self._stop_lock_renewer()
         logger.debug("Releasing %r.", self._name)
-        _eval_script(self._client, UNLOCK,
-                     2, self._name, self._signal, self._id)
-
-        self._held = False
-
-    def release(self, force=False):
-        """Releases the lock, that was acquired in the same Python context.
-
-        :param force:
-            If ``False`` - fail with exception if this instance was not in
-            acquired state in the same Python context.
-            If ``True`` - fail silently.
-        """
-        return self.__exit__(force=force)
+        error = _eval_script(self._client, UNLOCK, self._name, self._signal, args=(self._id,))
+        if error == 1:
+            raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
+        elif error:
+            raise RuntimeError("Unsupported error code %s from EXTEND script." % error)
+        else:
+            self._held = False
 
 
 class InterruptableThread(threading.Thread):
