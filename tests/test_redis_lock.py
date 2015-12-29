@@ -6,6 +6,7 @@ import sys
 import time
 from collections import defaultdict
 import multiprocessing
+from subprocess import check_output
 
 import pytest
 from process_tests import TestProcess
@@ -318,36 +319,45 @@ def test_no_overlap(redis_server):
 
 NWORKERS = 125
 
-@pytest.mark.skipif(platform.python_implementation() == 'PyPy', reason="This appears to be way too slow to run on PyPy")
+
+@pytest.mark.parametrize('', [()]*20)
 def test_no_overlap2(make_process, make_conn):
     """The second version of contention test, that uses multiprocessing."""
     go         = multiprocessing.Event()
     count_lock = multiprocessing.Lock()
     count      = multiprocessing.Value('H', 0)
 
-    def workerfn(go, count_lock, count):
+    def workerfn(n, go, count_lock, count):
+        n = '<%s>' % n
+        # print(n, 'before locking, counter value: %s' % count.value)
         redis_lock = Lock(make_conn(), 'lock')
+        # print(n, 'before acquiring count lock, counter value: %s' % count.value)
         with count_lock:
             count.value += 1
-
+        # print(n, 'before wait, counter value: %s' % count.value)
         go.wait()
-
+        # print(n, 'after wait')
         if redis_lock.acquire(blocking=True):
+            # print(n, 'after acquire')
             with count_lock:
                 count.value += 1
+        # print(n, 'end')
 
-    for _ in range(NWORKERS):
-        make_process(target=workerfn, args=(go, count_lock, count)).start()
+    for n in range(NWORKERS):
+        # print('spawning process #%s' % n)
+        # print('free memory:\n%s' % check_output(['free', '-m']))
+        make_process(target=workerfn, args=(n, go, count_lock, count)).start()
 
     # Wait until all workers will come to point when they are ready to acquire
     # the redis lock.
+    # print('before waiting workers, counter value: %s' % count.value)
     while count.value < NWORKERS:
         time.sleep(0.5)
-
+    # print('after waiting workers')
     # Then "count" will be used as counter of workers, which acquired
     # redis-lock with success.
     count.value = 0
-
+    # print('before go')
     go.set()
 
     time.sleep(1)
