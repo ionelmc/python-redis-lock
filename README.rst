@@ -1,6 +1,8 @@
-==========
-redis-lock
-==========
+========
+Overview
+========
+
+.. start-badges
 
 .. list-table::
     :stub-columns: 1
@@ -8,7 +10,7 @@ redis-lock
     * - docs
       - |docs|
     * - tests
-      - | |travis| |appveyor| |requires|
+      - | |travis| |requires|
         | |coveralls| |codecov|
         | |landscape| |scrutinizer| |codacy| |codeclimate|
     * - package
@@ -21,10 +23,6 @@ redis-lock
 .. |travis| image:: https://travis-ci.org/ionelmc/python-redis-lock.svg?branch=master
     :alt: Travis-CI Build Status
     :target: https://travis-ci.org/ionelmc/python-redis-lock
-
-.. |appveyor| image:: https://ci.appveyor.com/api/projects/status/github/ionelmc/python-redis-lock?branch=master&svg=true
-    :alt: AppVeyor Build Status
-    :target: https://ci.appveyor.com/project/ionelmc/python-redis-lock
 
 .. |requires| image:: https://requires.io/github/ionelmc/python-redis-lock/requirements.svg?branch=master
     :alt: Requirements Status
@@ -72,6 +70,8 @@ redis-lock
 .. |scrutinizer| image:: https://img.shields.io/scrutinizer/g/ionelmc/python-redis-lock/master.svg?style=flat
     :alt: Scrutinizer Status
     :target: https://scrutinizer-ci.com/g/ionelmc/python-redis-lock/
+
+.. end-badges
 
 Lock context manager implemented via redis SETNX/BLPOP.
 

@@ -1,7 +1,6 @@
-Welcome to redis-lock's documentation!
-========================================
-
-Contents:
+========
+Contents
+========
 
 .. toctree::
    :maxdepth: 2

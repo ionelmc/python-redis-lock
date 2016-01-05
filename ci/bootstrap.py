@@ -31,7 +31,9 @@ if __name__ == "__main__":
     exec(compile(open(activate, "rb").read(), activate, "exec"), dict(__file__=activate))
 
     import jinja2
+
     import matrix
+
 
     jinja = jinja2.Environment(
         loader=jinja2.FileSystemLoader(join(base_path, "ci", "templates")),
@@ -39,6 +41,7 @@ if __name__ == "__main__":
         lstrip_blocks=True,
         keep_trailing_newline=True
     )
+
     tox_environments = {}
     for (alias, conf) in matrix.from_file(join(base_path, "setup.cfg")).items():
         python = conf["python_versions"]
@@ -56,6 +59,7 @@ if __name__ == "__main__":
             tox_environments[alias].update(cover=cover)
         if "environment_variables" in conf:
             tox_environments[alias].update(env_vars=env_vars.split())
+
 
     for name in os.listdir(join("ci", "templates")):
         with open(join(base_path, name), "w") as fh:
