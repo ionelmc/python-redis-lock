@@ -236,7 +236,7 @@ class Lock(object):
             raise NotExpirable("Lock %s has no assigned expiration time" %
                                self._name)
         elif error:
-            raise RuntimeError("Unsupported error code %s from EXTEND script"  % error)
+            raise RuntimeError("Unsupported error code %s from EXTEND script" % error)
 
     def _lock_renewer(self, interval):
         """
