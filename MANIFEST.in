@@ -9,6 +9,7 @@ include .coveragerc
 include .cookiecutterrc
 include .isort.cfg
 include .pylintrc
+include .editorconfig
 
 include AUTHORS.rst
 include CHANGELOG.rst
