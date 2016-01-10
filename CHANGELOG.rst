@@ -15,6 +15,12 @@ Changelog
   <https://github.com/ionelmc/python-redis-lock/pull/22>`_.
 * Fixed ``acquire(block=True)`` handling when ``expire`` option was used (it wasn't blocking indefinitely). Contributed by
   Tero Vuotila in `#35 <https://github.com/ionelmc/python-redis-lock/pull/35>`_.
+* Changed ``release`` to check if lock was acquired with he same id. If not, ``NotAcquired`` will be raised.
+  Previously there was just a check if it was acquired with the same instance (self._held).
+  **BACKWARDS INCOMPATIBLE**
+* Removed the ``force`` option from ``release`` - it wasn't really necessary and it only encourages sloppy programming. See
+  `#25 <https://github.com/ionelmc/python-redis-lock/issues/25>`_.
+  **BACKWARDS INCOMPATIBLE**
 
 2.3.0 (2015-09-27)
 ------------------
