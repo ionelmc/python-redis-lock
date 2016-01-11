@@ -224,7 +224,7 @@ Requirements
 ============
 
 :OS: Any
-:Runtime: Python 2.6, 2.7, 3.2, 3.3 or PyPy
+:Runtime: Python 2.7, 3.3 or later, or PyPy
 :Services: Redis 2.6.12 or later.
 
 Similar projects
