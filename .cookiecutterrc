@@ -24,7 +24,7 @@ cookiecutter:
     requiresio: 'yes'
     scrutinizer: 'yes'
     sphinx_theme: sphinx-py3doc-enhanced-theme
-    test_matrix_configurator: 'no'
+    test_matrix_configurator: 'yes'
     test_runner: pytest
     travis: 'yes'
     version: 2.3.0
