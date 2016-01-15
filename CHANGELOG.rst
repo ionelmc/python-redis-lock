@@ -21,6 +21,7 @@ Changelog
 * Removed the ``force`` option from ``release`` - it wasn't really necessary and it only encourages sloppy programming. See
   `#25 <https://github.com/ionelmc/python-redis-lock/issues/25>`_.
   **BACKWARDS INCOMPATIBLE**
+* Dropped tests for Python 2.6. It may work but it is unsupported.
 
 2.3.0 (2015-09-27)
 ------------------
