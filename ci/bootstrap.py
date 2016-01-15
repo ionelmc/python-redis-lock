@@ -25,14 +25,14 @@ if __name__ == "__main__":
             subprocess.check_call(["virtualenv", env_path])
         except Exception:
             subprocess.check_call([sys.executable, "-m", "virtualenv", env_path])
-        print("Installing `jinja2` and `matrix` into bootstrap environment ...")
-        subprocess.check_call([join(bin_path, "pip"), "install", "jinja2", "matrix"])
+        print("Installing `jinja2` into bootstrap environment ...")
+        subprocess.check_call([join(bin_path, "pip"), "install", "jinja2"])
     activate = join(bin_path, "activate_this.py")
     exec(compile(open(activate, "rb").read(), activate, "exec"), dict(__file__=activate))
 
     import jinja2
 
-    import matrix
+    import subprocess
 
 
     jinja = jinja2.Environment(
@@ -42,23 +42,8 @@ if __name__ == "__main__":
         keep_trailing_newline=True
     )
 
-    tox_environments = {}
-    for (alias, conf) in matrix.from_file(join(base_path, "setup.cfg")).items():
-        python = conf["python_versions"]
-        deps = conf["dependencies"]
-        if "coverage_flags" in conf:
-            cover = {"false": False, "true": True}[conf["coverage_flags"].lower()]
-        if "environment_variables" in conf:
-            env_vars = conf["environment_variables"]
-
-        tox_environments[alias] = {
-            "python": "python" + python if "py" not in python else python,
-            "deps": deps.split(),
-        }
-        if "coverage_flags" in conf:
-            tox_environments[alias].update(cover=cover)
-        if "environment_variables" in conf:
-            tox_environments[alias].update(env_vars=env_vars.split())
+    tox_environments = [line.strip() for line in subprocess.check_output(['tox', '--listenvs']).splitlines()]
+    tox_environments = [line for line in tox_environments if line not in ['clean', 'report', 'docs', 'check']]
 
 
     for name in os.listdir(join("ci", "templates")):

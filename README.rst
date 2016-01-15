@@ -47,6 +47,7 @@ Overview
 .. |codeclimate| image:: https://codeclimate.com/github/ionelmc/python-redis-lock/badges/gpa.svg
    :target: https://codeclimate.com/github/ionelmc/python-redis-lock
    :alt: CodeClimate Quality Status
+
 .. |version| image:: https://img.shields.io/pypi/v/python-redis-lock.svg?style=flat
     :alt: PyPI Package latest release
     :target: https://pypi.python.org/pypi/python-redis-lock
@@ -70,6 +71,7 @@ Overview
 .. |scrutinizer| image:: https://img.shields.io/scrutinizer/g/ionelmc/python-redis-lock/master.svg?style=flat
     :alt: Scrutinizer Status
     :target: https://scrutinizer-ci.com/g/ionelmc/python-redis-lock/
+
 
 .. end-badges
 
