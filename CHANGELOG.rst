@@ -2,7 +2,7 @@
 Changelog
 =========
 
-3.0.0 (unreleased)
+3.0.0 (2016-01-16)
 ------------------
 
 * Changed ``release`` so that it expires signal-keys immediately. Contributed by Andrew Pashkin in `#28
