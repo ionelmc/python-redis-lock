@@ -17,7 +17,7 @@ class RedisCache(PlainRedisCache):
             )
 
     def lock(self, key, expire=None, id=None):
-        return Lock(self.__client, key, expire=expire, id=id)
+        return Lock(self.__client, key, expire=expire, id=id, auto_renewal=False)
 
     def reset_all(self):
         """
