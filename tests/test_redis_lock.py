@@ -409,14 +409,6 @@ def test_bogus_release(conn):
     lock2.release()
 
 
-def test_release_from_nonblocking_leaving_garbage(conn):
-    for _ in range(10):
-        lock = Lock(conn, 'release_from_nonblocking')
-        lock.acquire(blocking=False)
-        lock.release()
-        assert conn.llen('lock-signal:release_from_nonblocking') == 1
-
-
 def test_no_auto_renewal(conn):
     lock = Lock(conn, 'lock_renewal', expire=3, auto_renewal=False)
     assert lock._lock_renewal_interval is None
@@ -445,13 +437,28 @@ def test_auto_renewal(conn):
     assert lock._lock_renewal_thread is None
 
 
-def test_signal_expiration(conn):
-    """Signal keys expire within two seconds after releasing the lock."""
-    lock = Lock(conn, 'signal_expiration')
+def test_signal_cleanup_on_release(conn):
+    """After releasing a lock, the signal key should not remain."""
+    lock = Lock(conn, 'foo')
     lock.acquire()
     lock.release()
-    time.sleep(2)
-    assert conn.llen('lock-signal:signal_expiration') == 0
+    assert conn.llen('lock-signal:foo') == 0
+
+
+def test_signal_cleanup_on_reset(conn):
+    """After resetting a lock, the signal key should not remain."""
+    lock = Lock(conn, 'foo')
+    lock.acquire()
+    lock.reset()
+    assert conn.llen('lock-signal:foo') == 0
+
+
+def test_signal_cleanup_on_reset_all(conn):
+    """After resetting all locks, no signal keys should not remain."""
+    lock = Lock(conn, 'foo')
+    lock.acquire()
+    reset_all(conn)
+    assert conn.llen('lock-signal:foo') == 0
 
 
 def test_reset_signalizes(make_conn, make_process):
