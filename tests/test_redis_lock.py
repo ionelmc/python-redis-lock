@@ -408,14 +408,6 @@ def test_bogus_release(conn):
     lock2.release()
 
 
-def test_release_from_nonblocking_leaving_garbage(conn):
-    for _ in range(10):
-        lock = Lock(conn, 'release_from_nonblocking')
-        lock.acquire(blocking=False)
-        lock.release()
-        assert conn.llen('lock-signal:release_from_nonblocking') == 1
-
-
 def test_no_auto_renewal(conn):
     lock = Lock(conn, 'lock_renewal', expire=3, auto_renewal=False)
     assert lock._lock_renewal_interval is None
@@ -444,11 +436,11 @@ def test_auto_renewal(conn):
 
 
 def test_signal_expiration(conn):
-    """Signal keys expire within two seconds after releasing the lock."""
+    """Signal keys expire after one millisecond after releasing the lock."""
     lock = Lock(conn, 'signal_expiration')
     lock.acquire()
     lock.release()
-    time.sleep(2)
+    time.sleep(0.002)
     assert conn.llen('lock-signal:signal_expiration') == 0
 
 

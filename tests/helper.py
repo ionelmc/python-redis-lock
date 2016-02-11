@@ -54,7 +54,7 @@ if __name__ == '__main__':
             with Lock(conn, "foobar"):
                 time.sleep(0.001)
         sched.enterabs(start, 0, cb_no_overlap, ())
-        pids = []
+        pids = [os.getpid()]
 
         for _ in range(125):
             pid = os.fork()
