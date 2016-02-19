@@ -4,6 +4,7 @@ import os
 import platform
 import sys
 import time
+import threading
 from collections import defaultdict
 import multiprocessing
 
@@ -15,7 +16,6 @@ from process_tests import wait_for_strings
 from redis import StrictRedis
 
 from redis_lock import AlreadyAcquired
-from redis_lock import InterruptableThread
 from redis_lock import InvalidTimeout
 from redis_lock import Lock
 from redis_lock import NotAcquired
@@ -432,8 +432,8 @@ def test_auto_renewal(conn):
     lock = Lock(conn, 'lock_renewal', expire=3, auto_renewal=True)
     lock.acquire()
 
-    assert isinstance(lock._lock_renewal_thread, InterruptableThread)
-    assert not lock._lock_renewal_thread.should_exit
+    assert isinstance(lock._lock_renewal_thread, threading.Thread)
+    assert not lock._lock_renewal_stop.is_set()
     assert lock._lock_renewal_interval == 2
 
     time.sleep(3)

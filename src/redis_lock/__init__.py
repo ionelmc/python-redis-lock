@@ -238,13 +238,13 @@ class Lock(object):
         elif error:
             raise RuntimeError("Unsupported error code %s from EXTEND script" % error)
 
-    def _lock_renewer(self, interval):
+    def _lock_renewer(self, interval, stop):
         """
         Renew the lock key in redis every `interval` seconds for as long
         as `self._lock_renewal_thread.should_exit` is False.
         """
         log = getLogger("%s.lock_refresher" % __name__)
-        while not self._lock_renewal_thread.wait_for_exit_request(timeout=interval):
+        while not stop.wait(timeout=interval):
             log.debug("Refreshing lock")
             self.extend(expire=self._expire)
         log.debug("Exit requested, stopping lock refreshing")
@@ -260,10 +260,12 @@ class Lock(object):
             "Starting thread to refresh lock every %s seconds",
             self._lock_renewal_interval
         )
-        self._lock_renewal_thread = InterruptableThread(
+        self._lock_renewal_stop = threading.Event()
+        self._lock_renewal_thread = threading.Thread(
             group=None,
             target=self._lock_renewer,
-            kwargs={'interval': self._lock_renewal_interval}
+            kwargs={'interval': self._lock_renewal_interval,
+                    'stop': self._lock_renewal_stop}
         )
         self._lock_renewal_thread.setDaemon(True)
         self._lock_renewal_thread.start()
@@ -277,7 +279,7 @@ class Lock(object):
         if self._lock_renewal_thread is None or not self._lock_renewal_thread.is_alive():
             return
         logger.debug("Signalling the lock refresher to stop")
-        self._lock_renewal_thread.request_exit()
+        self._lock_renewal_stop.set()
         self._lock_renewal_thread.join()
         self._lock_renewal_thread = None
         logger.debug("Lock refresher has stopped")
@@ -312,44 +314,6 @@ class Lock(object):
             raise RuntimeError("Unsupported error code %s from EXTEND script." % error)
         else:
             self._held = False
-
-
-class InterruptableThread(threading.Thread):
-    """
-    A Python thread that can be requested to stop by calling request_exit()
-    on it.
-
-    Code running inside this thread should periodically check the
-    `should_exit` property (or use wait_for_exit_request) on the thread
-    object and stop further processing once it returns True.
-    """
-    def __init__(self, *args, **kwargs):
-        self._should_exit = threading.Event()
-        super(InterruptableThread, self).__init__(*args, **kwargs)
-
-    def request_exit(self):
-        """
-        Signal the thread that it should stop performing more work and exit.
-        """
-        self._should_exit.set()
-
-    @property
-    def should_exit(self):
-        return self._should_exit.isSet()
-
-    def wait_for_exit_request(self, timeout=None):
-        """
-        Wait until the thread has been signalled to exit.
-
-        If timeout is specified (as a float of seconds to wait) then wait
-        up to this many seconds before returning the value of `should_exit`.
-        """
-        should_exit = self._should_exit.wait(timeout)
-        if should_exit is None:
-            # Python 2.6 compatibility which doesn't return self.__flag when
-            # calling Event.wait()
-            should_exit = self.should_exit
-        return should_exit
 
 
 def reset_all(redis_client):
