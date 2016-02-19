@@ -156,7 +156,9 @@ class Lock(object):
         self._held = id is not None
         self._name = 'lock:'+name
         self._signal = 'lock-signal:'+name
-        self._lock_renewal_interval = expire*2/3 if auto_renewal else None
+        self._lock_renewal_interval = (float(expire)*2/3
+                                       if auto_renewal
+                                       else None)
         self._lock_renewal_thread = None
 
     def reset(self):

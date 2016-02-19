@@ -434,6 +434,7 @@ def test_auto_renewal(conn):
 
     assert isinstance(lock._lock_renewal_thread, threading.Thread)
     assert not lock._lock_renewal_stop.is_set()
+    assert isinstance(lock._lock_renewal_interval, float)
     assert lock._lock_renewal_interval == 2
 
     time.sleep(3)
