@@ -2,6 +2,7 @@ import threading
 from logging import getLogger
 from os import urandom
 from hashlib import sha1
+import weakref
 
 from redis import StrictRedis
 from redis.exceptions import NoScriptError
@@ -240,7 +241,8 @@ class Lock(object):
         elif error:
             raise RuntimeError("Unsupported error code %s from EXTEND script" % error)
 
-    def _lock_renewer(self, interval, stop):
+    @staticmethod
+    def _lock_renewer(lockref, interval, stop):
         """
         Renew the lock key in redis every `interval` seconds for as long
         as `self._lock_renewal_thread.should_exit` is False.
@@ -248,7 +250,13 @@ class Lock(object):
         log = getLogger("%s.lock_refresher" % __name__)
         while not stop.wait(timeout=interval):
             log.debug("Refreshing lock")
-            self.extend(expire=self._expire)
+            lock = lockref()
+            if lock is None:
+                log.debug("The lock no longer exists, "
+                          "stopping lock refreshing")
+                break
+            lock.extend(expire=lock._expire)
+            del lock
         log.debug("Exit requested, stopping lock refreshing")
 
     def _start_lock_renewer(self):
@@ -266,7 +274,8 @@ class Lock(object):
         self._lock_renewal_thread = threading.Thread(
             group=None,
             target=self._lock_renewer,
-            kwargs={'interval': self._lock_renewal_interval,
+            kwargs={'lockref': weakref.ref(self),
+                    'interval': self._lock_renewal_interval,
                     'stop': self._lock_renewal_stop}
         )
         self._lock_renewal_thread.setDaemon(True)

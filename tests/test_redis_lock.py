@@ -1,6 +1,7 @@
 from __future__ import print_function, division
 
 import os
+import gc
 import platform
 import sys
 import time
@@ -500,3 +501,26 @@ def test_reset_all_signalizes(make_conn, make_process):
     worker.join(0.5)
 
     assert unblocked.value == 1
+
+
+def test_auto_renewal_stops_after_gc(conn):
+    """Auto renewal stops after lock is garbage collected."""
+    lock = Lock(conn, 'spam', auto_renewal=True, expire=1)
+    name = lock._name
+    lock.acquire(blocking=True)
+    lock_renewal_thread = lock._lock_renewal_thread
+    del lock
+    gc.collect()
+
+    slept = 0
+    interval = 0.1
+    while slept <= 5:
+        slept += interval
+        lock_renewal_thread.join(interval)
+        if not lock_renewal_thread.is_alive():
+            break
+
+    time.sleep(1.5)
+
+    assert not lock_renewal_thread.is_alive()
+    assert conn.get(name) is None
