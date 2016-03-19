@@ -1,9 +1,11 @@
 from __future__ import print_function, division
 
 import os
+import gc
 import platform
 import sys
 import time
+import threading
 from collections import defaultdict
 import multiprocessing
 
@@ -15,7 +17,6 @@ from process_tests import wait_for_strings
 from redis import StrictRedis
 
 from redis_lock import AlreadyAcquired
-from redis_lock import InterruptableThread
 from redis_lock import InvalidTimeout
 from redis_lock import Lock
 from redis_lock import NotAcquired
@@ -432,8 +433,9 @@ def test_auto_renewal(conn):
     lock = Lock(conn, 'lock_renewal', expire=3, auto_renewal=True)
     lock.acquire()
 
-    assert isinstance(lock._lock_renewal_thread, InterruptableThread)
-    assert not lock._lock_renewal_thread.should_exit
+    assert isinstance(lock._lock_renewal_thread, threading.Thread)
+    assert not lock._lock_renewal_stop.is_set()
+    assert isinstance(lock._lock_renewal_interval, float)
     assert lock._lock_renewal_interval == 2
 
     time.sleep(3)
@@ -499,3 +501,26 @@ def test_reset_all_signalizes(make_conn, make_process):
     worker.join(0.5)
 
     assert unblocked.value == 1
+
+
+def test_auto_renewal_stops_after_gc(conn):
+    """Auto renewal stops after lock is garbage collected."""
+    lock = Lock(conn, 'spam', auto_renewal=True, expire=1)
+    name = lock._name
+    lock.acquire(blocking=True)
+    lock_renewal_thread = lock._lock_renewal_thread
+    del lock
+    gc.collect()
+
+    slept = 0
+    interval = 0.1
+    while slept <= 5:
+        slept += interval
+        lock_renewal_thread.join(interval)
+        if not lock_renewal_thread.is_alive():
+            break
+
+    time.sleep(1.5)
+
+    assert not lock_renewal_thread.is_alive()
+    assert conn.get(name) is None
