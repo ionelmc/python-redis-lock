@@ -2,6 +2,12 @@
 Changelog
 =========
 
+3.1.0 (2016-03-30)
+------------------
+
+* Changed the auto renewal to automatically stop the renewal thread if lock gets garbage collected. Contributed by
+  Andrew Pashkin in `#33 <https://github.com/ionelmc/python-redis-lock/pull/33>`_.
+
 3.0.0 (2016-01-16)
 ------------------
 
