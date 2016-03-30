@@ -51,6 +51,7 @@ script:
 after_failure:
   - more .tox/log/* | cat
   - more .tox/*/log/* | cat
+  - dmesg
 before_cache:
   - rm -rf $HOME/.cache/pip/log
 cache:
