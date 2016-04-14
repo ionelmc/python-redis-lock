@@ -154,13 +154,23 @@ class Lock(object):
         self._client = redis_client
         self._expire = expire if expire is None else int(expire)
         self._id = urandom(16) if id is None else id
-        self._held = id is not None
         self._name = 'lock:'+name
         self._signal = 'lock-signal:'+name
         self._lock_renewal_interval = (float(expire)*2/3
                                        if auto_renewal
                                        else None)
         self._lock_renewal_thread = None
+        if id:
+            owner_id = self.get_owner_id()
+            if owner_id:
+                if owner_id == id:
+                    self._held = True
+                else:
+                    raise AlreadyAcquired("Already acquired from this Lock by other id.")
+            else:
+                self._held = False
+        else:
+            self._held = False
 
     def reset(self):
         """
