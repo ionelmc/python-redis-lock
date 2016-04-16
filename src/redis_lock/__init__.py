@@ -7,7 +7,7 @@ import weakref
 from redis import StrictRedis
 from redis.exceptions import NoScriptError
 
-__version__ = "3.0.0"
+__version__ = "3.1.0"
 
 logger = getLogger(__name__)
 
