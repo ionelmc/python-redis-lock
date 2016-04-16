@@ -164,7 +164,12 @@ class Lock(object):
 
         self._client = redis_client
         self._expire = expire if expire is None else int(expire)
-        self._id = urandom(16) if id is None else id
+        if id is None:
+            self._id = urandom(16)
+        elif isinstance(id, bytes):
+            self._id = id
+        else:
+            raise TypeError("Incorrect type for `id`. Must be bytes not %s." % type(id))
         self._name = 'lock:'+name
         self._signal = 'lock-signal:'+name
         self._lock_renewal_interval = (float(expire)*2/3
