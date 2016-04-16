@@ -2,7 +2,7 @@
 Changelog
 =========
 
-3.1.0 (2016-03-30)
+3.1.0 (2016-04-16)
 ------------------
 
 * Changed the auto renewal to automatically stop the renewal thread if lock gets garbage collected. Contributed by
