@@ -164,14 +164,22 @@ class Lock(object):
 
         self._client = redis_client
         self._expire = expire if expire is None else int(expire)
-        self._id = urandom(16) if id is None else id
-        self._held = id is not None
+        if id is None:
+            self._id = urandom(16)
+        elif isinstance(id, bytes):
+            self._id = id
+        else:
+            raise TypeError("Incorrect type for `id`. Must be bytes not %s." % type(id))
         self._name = 'lock:'+name
         self._signal = 'lock-signal:'+name
         self._lock_renewal_interval = (float(expire)*2/3
                                        if auto_renewal
                                        else None)
         self._lock_renewal_thread = None
+
+    @property
+    def _held(self):
+        return self.id == self.get_owner_id()
 
     def reset(self):
         """
@@ -224,7 +232,6 @@ class Lock(object):
                     return False
 
         logger.debug("Got lock for %r.", self._name)
-        self._held = True
         if self._lock_renewal_interval is not None:
             self._start_lock_renewer()
         return True
@@ -336,7 +343,6 @@ class Lock(object):
         elif error:
             raise RuntimeError("Unsupported error code %s from EXTEND script." % error)
         else:
-            self._held = False
             self._delete_signal()
 
     def _delete_signal(self):

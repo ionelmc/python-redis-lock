@@ -2,6 +2,15 @@
 Changelog
 =========
 
+3.2.0 (??????????)
+------------------
+
+* Changed the signal key cleanup operation do be done without any expires. This prevents lingering keys around for some time.
+  Contributed by Andrew Pashkin in `#38 <https://github.com/ionelmc/python-redis-lock/pull/38>`_.
+* Allow locks with given `id` to acquire. Previously it assumed that if you specify the `id` then the lock was already
+  acquired. See `#44 <https://github.com/ionelmc/python-redis-lock/issues/44>`_ and
+  `#39 <https://github.com/ionelmc/python-redis-lock/issues/39>`_.
+
 3.1.0 (2016-04-16)
 ------------------
 

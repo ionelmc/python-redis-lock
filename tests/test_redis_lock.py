@@ -531,3 +531,21 @@ def test_auto_renewal_stops_after_gc(conn):
 
     assert not lock_renewal_thread.is_alive()
     assert conn.get(name) is None
+
+
+def test_given_id(conn):
+    """It is possible to extend a lock using another instance of Lock with the
+    same name.
+    """
+    name = 'foobar'
+    key_name = 'lock:' + name
+    orig = Lock(conn, name, expire=100, id=b"a")
+    orig.acquire()
+    pytest.raises(TypeError, Lock, conn, name, id=object())
+    lock = Lock(conn, name, id=b"a")
+    pytest.raises(AlreadyAcquired, lock.acquire)
+    lock.extend(100)
+    lock.release()  # this works, note that this ain't the object that acquired the lock
+    pytest.raises(NotAcquired, orig.release)  # and this fails because lock was released above
+
+    assert conn.ttl(key_name) == -2
