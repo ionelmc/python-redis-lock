@@ -332,8 +332,6 @@ class Lock(object):
             * Use ``Lock("name", id=id_from_other_place).release()``
             * Use ``Lock("name").reset()``
         """
-        if not self._held:
-            raise NotAcquired("This Lock instance didn't acquire the lock.")
         if self._lock_renewal_thread is not None:
             self._stop_lock_renewer()
         logger.debug("Releasing %r.", self._name)
