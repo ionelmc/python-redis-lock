@@ -28,27 +28,27 @@ class RedisCache(PlainRedisCache):
         set to the value returned when calling `value_creator`. The creator function
         is invoked inside of a lock.
         """
-        # As users might put `None` into the cache, we need something
-        # uniquely recognizable for our `default` argument to `.get`.
-        not_set = object()
-
         if lock_key is None:
             lock_key = '{0}.set-lock'.format(key)
 
-        val = self.get(key, version=version, default=not_set)
-        if val is not not_set:
+        val = self.get(key, version=version)
+        if val is not None:
             return val
-        else:
-            with self.lock(lock_key, expire=expire, id=id):
-                # Was the value set while we were trying to acquire the lock?
-                val = self.get(key, version=version, default=not_set)
-                if val is not not_set:
-                    return val
 
-                # Nope, create value now.
-                val = value_creator()
-                self.set(key, val, timeout=timeout, version=version)
+        with self.lock(lock_key, expire=expire, id=id):
+            # Was the value set while we were trying to acquire the lock?
+            val = self.get(key, version=version)
+            if val is not None:
                 return val
+
+            # Nope, create value now.
+            val = value_creator()
+
+            if val is None:
+                raise ValueError('`value_creator` must return a value')
+
+            self.set(key, val, timeout=timeout, version=version)
+            return val
 
     def reset_all(self):
         """
