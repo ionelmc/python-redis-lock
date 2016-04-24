@@ -29,7 +29,7 @@ class RedisCache(PlainRedisCache):
         is invoked inside of a lock.
         """
         if lock_key is None:
-            lock_key = '{0}.set-lock'.format(key)
+            lock_key = 'get_or_set:' + key
 
         val = self.get(key, version=version)
         if val is not None:
