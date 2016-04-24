@@ -549,3 +549,8 @@ def test_given_id(conn):
     pytest.raises(NotAcquired, orig.release)  # and this fails because lock was released above
 
     assert conn.ttl(key_name) == -2
+
+
+def test_strict_check():
+    pytest.raises(ValueError, Lock, object(), name='foobar')
+    Lock(object(), name='foobar', strict=False)

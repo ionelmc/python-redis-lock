@@ -133,7 +133,7 @@ class Lock(object):
     A Lock context manager implemented via redis SETNX/BLPOP.
     """
 
-    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False):
+    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, strict=True):
         """
         :param redis_client:
             An instance of :class:`~StrictRedis`.
@@ -149,16 +149,20 @@ class Lock(object):
             Note that if you specify this then the lock is marked as "held". Acquires
             won't be possible.
         :param auto_renewal:
-            If set to True, Lock will automatically renew the lock so that it
+            If set to ``True``, Lock will automatically renew the lock so that it
             doesn't expire for as long as the lock is held (acquire() called
             or running in a context manager).
 
             Implementation note: Renewal will happen using a daemon thread with
-            an interval of expire*2/3. If wishing to use a different renewal
-            time, subclass Lock, call super().__init__() then set
-            self._lock_renewal_interval to your desired interval.
+            an interval of ``expire*2/3``. If wishing to use a different renewal
+            time, subclass Lock, call ``super().__init__()`` then set
+            ``self._lock_renewal_interval`` to your desired interval.
+        :param strict:
+            If set ``True`` then the ``redis_client`` needs to be an instance of ``redis.StrictRedis``.
         """
-        assert isinstance(redis_client, StrictRedis)
+        if strict and not isinstance(redis_client, StrictRedis):
+            raise ValueError("redis_client must be instance of StrictRedis. "
+                             "Use strict=False if you know what you're doing.")
         if auto_renewal and expire is None:
             raise ValueError("Expire may not be None when auto_renewal is set")
 

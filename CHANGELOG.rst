@@ -10,6 +10,8 @@ Changelog
 * Allow locks with given `id` to acquire. Previously it assumed that if you specify the `id` then the lock was already
   acquired. See `#44 <https://github.com/ionelmc/python-redis-lock/issues/44>`_ and
   `#39 <https://github.com/ionelmc/python-redis-lock/issues/39>`_.
+* Allow using other redis clients with a ``strict=False``. Normally you're expected to pass in an instance
+  of ``redis.StrictRedis``.
 
 3.1.0 (2016-04-16)
 ------------------
