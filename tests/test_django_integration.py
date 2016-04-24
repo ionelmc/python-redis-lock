@@ -25,11 +25,11 @@ def test_django_add_or_set_locked(redis_server):
     def assert_false_creator():
         assert False
 
-    assert cache.get_or_set_locked("foobar-aosl", creator_42) == 42
-    assert cache.get_or_set_locked("foobar-aosl", assert_false_creator) == 42
+    assert cache.locked_get_or_set("foobar-aosl", creator_42) == 42
+    assert cache.locked_get_or_set("foobar-aosl", assert_false_creator) == 42
 
     try:
-        val = cache.get_or_set_locked("foobar-aosl2", none_creator)
+        val = cache.locked_get_or_set("foobar-aosl2", none_creator)
     except ValueError:
         pass
     else:

@@ -20,7 +20,7 @@ class RedisCache(PlainRedisCache):
     def lock(self, key, expire=None, id=None):
         return Lock(self.__client, key, expire=expire, id=id)
 
-    def get_or_set_locked(self, key, value_creator, version=None,
+    def locked_get_or_set(self, key, value_creator, version=None,
                           expire=None, id=None, lock_key=None,
                           timeout=DEFAULT_TIMEOUT):
         """
