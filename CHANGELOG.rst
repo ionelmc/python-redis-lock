@@ -10,7 +10,7 @@ Changelog
 * Allow locks with given `id` to acquire. Previously it assumed that if you specify the `id` then the lock was already
   acquired. See `#44 <https://github.com/ionelmc/python-redis-lock/issues/44>`_ and
   `#39 <https://github.com/ionelmc/python-redis-lock/issues/39>`_.
-* Added convenience method `get_or_set_locked` to Django cache backend. 
+* Added convenience method `locked_get_or_set` to Django cache backend.
 
 3.1.0 (2016-04-16)
 ------------------
