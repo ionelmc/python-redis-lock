@@ -8,6 +8,8 @@ env:
   matrix:
     - TOXENV=check
 
+    - TOXENV=2.7-1.10-cover,coveralls,codecov
+    - TOXENV=2.7-1.10-nocov
     - TOXENV=2.7-1.7-cover,coveralls,codecov
     - TOXENV=2.7-1.7-nocov
     - TOXENV=2.7-1.8-cover,coveralls,codecov
@@ -18,18 +20,24 @@ env:
     - TOXENV=3.3-1.7-nocov
     - TOXENV=3.3-1.8-cover,coveralls,codecov
     - TOXENV=3.3-1.8-nocov
+    - TOXENV=3.4-1.10-cover,coveralls,codecov
+    - TOXENV=3.4-1.10-nocov
     - TOXENV=3.4-1.7-cover,coveralls,codecov
     - TOXENV=3.4-1.7-nocov
     - TOXENV=3.4-1.8-cover,coveralls,codecov
     - TOXENV=3.4-1.8-nocov
     - TOXENV=3.4-1.9-cover,coveralls,codecov
     - TOXENV=3.4-1.9-nocov
+    - TOXENV=3.5-1.10-cover,coveralls,codecov
+    - TOXENV=3.5-1.10-nocov
     - TOXENV=3.5-1.7-cover,coveralls,codecov
     - TOXENV=3.5-1.7-nocov
     - TOXENV=3.5-1.8-cover,coveralls,codecov
     - TOXENV=3.5-1.8-nocov
     - TOXENV=3.5-1.9-cover,coveralls,codecov
     - TOXENV=3.5-1.9-nocov
+    - TOXENV=pypy-1.10-cover,coveralls,codecov
+    - TOXENV=pypy-1.10-nocov
     - TOXENV=pypy-1.7-cover,coveralls,codecov
     - TOXENV=pypy-1.7-nocov
     - TOXENV=pypy-1.8-cover,coveralls,codecov
