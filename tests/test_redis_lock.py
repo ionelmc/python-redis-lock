@@ -443,6 +443,7 @@ def test_signal_cleanup_on_release(conn):
     lock.acquire()
     lock.release()
     assert conn.llen('lock-signal:foo') == 0
+    assert conn.exists('lock-signal:foo') == 0
 
 
 def test_signal_cleanup_on_reset(conn):
@@ -451,6 +452,7 @@ def test_signal_cleanup_on_reset(conn):
     lock.acquire()
     lock.reset()
     assert conn.llen('lock-signal:foo') == 0
+    assert conn.exists('lock-signal:foo') == 0
 
 
 def test_signal_cleanup_on_reset_all(conn):
@@ -459,6 +461,7 @@ def test_signal_cleanup_on_reset_all(conn):
     lock.acquire()
     reset_all(conn)
     assert conn.llen('lock-signal:foo') == 0
+    assert conn.exists('lock-signal:foo') == 0
 
 
 def test_reset_signalizes(make_conn, make_process):
