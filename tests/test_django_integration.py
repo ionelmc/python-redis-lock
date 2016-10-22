@@ -15,6 +15,28 @@ def test_django_works(redis_server):
 
 
 @pytest.mark.skipif("not django")
+def test_django_add_or_set_locked(redis_server):
+    def creator_42():
+        return 42
+
+    def none_creator():
+        return None
+
+    def assert_false_creator():
+        assert False
+
+    assert cache.locked_get_or_set("foobar-aosl", creator_42) == 42
+    assert cache.locked_get_or_set("foobar-aosl", assert_false_creator) == 42
+
+    try:
+        val = cache.locked_get_or_set("foobar-aosl2", none_creator)
+    except ValueError:
+        pass
+    else:
+        assert False
+
+
+@pytest.mark.skipif("not django")
 def test_reset_all(redis_server):
     lock1 = cache.lock("foobar1")
     lock2 = cache.lock("foobar2")

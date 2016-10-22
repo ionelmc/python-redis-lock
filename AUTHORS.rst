@@ -10,3 +10,4 @@ Authors
 * Victor Torres - http://github.com/victor-torres
 * Andrew Pashkin - https://github.com/AndrewPashkin
 * Tero Vuotila - https://github.com/tvuotila
+* Joel Höner - https://github.com/athre0z

@@ -12,6 +12,7 @@ Changelog
   `#39 <https://github.com/ionelmc/python-redis-lock/issues/39>`_.
 * Allow using other redis clients with a ``strict=False``. Normally you're expected to pass in an instance
   of ``redis.StrictRedis``.
+* Added convenience method `locked_get_or_set` to Django cache backend.
 
 3.1.0 (2016-04-16)
 ------------------
