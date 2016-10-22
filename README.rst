@@ -134,12 +134,21 @@ Now put something like this in your settings::
     CACHES = {
         'default': {
             'BACKEND': 'redis_lock.django_cache.RedisCache',
-            'LOCATION': '127.0.0.1:6379',
+            'LOCATION': 'redis://127.0.0.1:6379/1',
             'OPTIONS': {
-                'DB': 1
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient'
             }
         }
     }
+
+
+.. note::
+    
+
+    If using a `django-redis` < `3.8.x`, you'll probably need `redis_cache` 
+    which has been deprecated in favor to `django_redis`. The `redis_cache` 
+    module is removed in `django-redis` versions > `3.9.x`. See `django-redis notes <http://niwinz.github.io/django-redis/latest/#_configure_as_cache_backend>`_.
+
 
 This backend just adds a convenient ``.lock(name, expire=None)`` function to django-redis's cache backend.
 
