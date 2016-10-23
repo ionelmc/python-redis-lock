@@ -19,14 +19,16 @@ cookiecutter:
     package_name: redis_lock
     project_name: redis-lock
     project_short_description: Lock context manager implemented via redis SETNX/BLPOP.
-    release_date: '2015-09-27'
+    release_date: '2016-10-23'
     repo_name: python-redis-lock
     requiresio: 'yes'
     scrutinizer: 'yes'
+    sphinx_doctest: 'no'
     sphinx_theme: sphinx-py3doc-enhanced-theme
     test_matrix_configurator: 'yes'
+    test_matrix_separate_coverage: 'no'
     test_runner: pytest
     travis: 'yes'
-    version: 2.3.0
+    version: 3.1.0
     website: http://blog.ionelmc.ro
     year: 2013-2016

@@ -7,12 +7,13 @@ import os
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
-    'sphinx.ext.todo',
     'sphinx.ext.coverage',
-    'sphinx.ext.ifconfig',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.napoleon',
+    'sphinx.ext.doctest',
     'sphinx.ext.extlinks',
+    'sphinx.ext.ifconfig',
+    'sphinx.ext.napoleon',
+    'sphinx.ext.todo',
+    'sphinx.ext.viewcode',
 ]
 if os.getenv('SPELLCHECK'):
     extensions += 'sphinxcontrib.spelling',
@@ -42,7 +43,7 @@ html_theme_options = {
 
 html_use_smartypants = True
 html_last_updated_fmt = '%b %d, %Y'
-html_split_index = True
+html_split_index = False
 html_sidebars = {
    '**': ['searchbox.html', 'globaltoc.html', 'sourcelink.html'],
 }

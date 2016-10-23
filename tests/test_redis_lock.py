@@ -1,29 +1,30 @@
-from __future__ import print_function, division
+from __future__ import division
+from __future__ import print_function
 
-import os
 import gc
+import multiprocessing
+import os
 import platform
 import sys
-import time
 import threading
+import time
 from collections import defaultdict
-import multiprocessing
 
 import pytest
 from process_tests import TestProcess
 from process_tests import dump_on_error
 from process_tests import wait_for_strings
-
 from redis import StrictRedis
 
 from redis_lock import AlreadyAcquired
 from redis_lock import InvalidTimeout
 from redis_lock import Lock
 from redis_lock import NotAcquired
-from redis_lock import TimeoutTooLarge
-from redis_lock import TimeoutNotUsable
 from redis_lock import NotExpirable
+from redis_lock import TimeoutNotUsable
+from redis_lock import TimeoutTooLarge
 from redis_lock import reset_all
+
 from conf import HELPER
 from conf import TIMEOUT
 from conf import UDS_PATH
