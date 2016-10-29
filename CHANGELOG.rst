@@ -2,7 +2,7 @@
 Changelog
 =========
 
-3.2.0 (??????????)
+3.2.0 (2016-10-29)
 ------------------
 
 * Changed the signal key cleanup operation do be done without any expires. This prevents lingering keys around for some time.
