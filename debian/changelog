@@ -1,0 +1,5 @@
+python-redis-lock (2.3.0) unstable; urgency=medium
+
+  * First debian package.
+
+ -- Olivier Roussy <olivier@gandi.net>  Fri, 20 Nov 2015 17:01:07 +0100
