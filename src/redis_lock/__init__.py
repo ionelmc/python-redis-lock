@@ -124,7 +124,7 @@ def _eval_script(redis, script_id, *keys, **kwargs):
     try:
         return redis.evalsha(SCRIPTS[script_id], len(keys), *keys + args)
     except NoScriptError:
-        logger.warn("%s not cached.", SCRIPTS[script_id + 2])
+        logger.info("%s not cached.", SCRIPTS[script_id + 2])
         return redis.eval(SCRIPTS[script_id + 1], len(keys), *keys + args)
 
 
