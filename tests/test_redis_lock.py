@@ -11,6 +11,9 @@ import time
 from collections import defaultdict
 
 import pytest
+from conf import HELPER
+from conf import TIMEOUT
+from conf import UDS_PATH
 from process_tests import TestProcess
 from process_tests import dump_on_error
 from process_tests import wait_for_strings
@@ -24,10 +27,6 @@ from redis_lock import NotExpirable
 from redis_lock import TimeoutNotUsable
 from redis_lock import TimeoutTooLarge
 from redis_lock import reset_all
-
-from conf import HELPER
-from conf import TIMEOUT
-from conf import UDS_PATH
 
 
 @pytest.yield_fixture
@@ -45,11 +44,13 @@ def redis_server(scope='module'):
 @pytest.fixture(scope='function')
 def make_conn(request, redis_server):
     """Redis connection factory."""
+
     def make_conn_factory():
         conn_ = StrictRedis(unix_socket_path=UDS_PATH)
         request.addfinalizer(conn_.flushdb)
 
         return conn_
+
     return make_conn_factory
 
 
@@ -63,6 +64,7 @@ def make_process(request):
     """Process factory, that makes processes, that terminate themselves
     after a test run.
     """
+
     def make_process_factory(*args, **kwargs):
         process = multiprocessing.Process(*args, **kwargs)
         request.addfinalizer(process.terminate)
@@ -155,7 +157,7 @@ def test_invalid_timeout(conn):
 
 
 def test_expire(conn):
-    lock = Lock(conn, "foobar", expire=TIMEOUT/4)
+    lock = Lock(conn, "foobar", expire=TIMEOUT / 4)
     lock.acquire()
     with TestProcess(sys.executable, HELPER, 'test_expire') as proc:
         with dump_on_error(proc.read):
@@ -260,6 +262,18 @@ def test_plain(conn):
         time.sleep(0.01)
 
 
+def test_race_on_release(redis_server):
+    """
+    This tests https://github.com/ionelmc/python-redis-lock/issues/58 - race condition when lock is released,
+    a 3rd client not blocking on the signal can aquire the lock if it tries setnx at the right time.
+    """
+    with TestProcess(sys.executable, '-u', HELPER, 'test_race_on_release') as proc:
+        with dump_on_error(proc.read):
+            wait_for_strings(proc.read, 10 * TIMEOUT, *[
+                '(iteration: %i) got lock from blocking acquire' % i for i in range(100)
+            ])
+
+
 def test_no_overlap(redis_server):
     """
     This test tries to simulate contention: lots of clients trying to acquire at the same time.
@@ -277,11 +291,11 @@ def test_no_overlap(redis_server):
     with TestProcess(sys.executable, HELPER, 'test_no_overlap') as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
-            wait_for_strings(proc.read, 10*TIMEOUT, 'Getting %r ...' % name)
-            wait_for_strings(proc.read, 10*TIMEOUT, 'Got lock for %r.' % name)
-            wait_for_strings(proc.read, 10*TIMEOUT, 'Releasing %r.' % name)
-            wait_for_strings(proc.read, 10*TIMEOUT, 'UNLOCK_SCRIPT not cached.')
-            wait_for_strings(proc.read, 10*TIMEOUT, 'DIED.')
+            wait_for_strings(proc.read, 10 * TIMEOUT, 'Getting %r ...' % name)
+            wait_for_strings(proc.read, 10 * TIMEOUT, 'Got lock for %r.' % name)
+            wait_for_strings(proc.read, 10 * TIMEOUT, 'Releasing %r.' % name)
+            wait_for_strings(proc.read, 10 * TIMEOUT, 'UNLOCK_SCRIPT not cached.')
+            wait_for_strings(proc.read, 10 * TIMEOUT, 'DIED.')
 
             class Event(object):
                 pid = start = end = '?'
@@ -311,7 +325,7 @@ def test_no_overlap(redis_server):
                     if other is not event:
                         try:
                             if other.start < event.start < other.end or \
-                               other.start < event.end < other.end:
+                                other.start < event.end < other.end:
                                 pytest.fail('%s overlaps %s' % (event, other))
                         except:
                             print("[%s/%s]" % (event, other))
@@ -320,12 +334,13 @@ def test_no_overlap(redis_server):
 
 NWORKERS = 125
 
+
 @pytest.mark.skipif(platform.python_implementation() == 'PyPy', reason="This appears to be way too slow to run on PyPy")
 def test_no_overlap2(make_process, make_conn):
     """The second version of contention test, that uses multiprocessing."""
-    go         = multiprocessing.Event()
+    go = multiprocessing.Event()
     count_lock = multiprocessing.Lock()
-    count      = multiprocessing.Value('H', 0)
+    count = multiprocessing.Value('H', 0)
 
     def workerfn(go, count_lock, count):
         redis_lock = Lock(make_conn(), 'lock')
@@ -382,7 +397,7 @@ def test_reset_all(conn):
 
 def test_owner_id(conn):
     unique_identifier = b"foobar-identifier"
-    lock = Lock(conn, "foobar-tok", expire=TIMEOUT/4, id=unique_identifier)
+    lock = Lock(conn, "foobar-tok", expire=TIMEOUT / 4, id=unique_identifier)
     lock_id = lock.id
     assert lock_id == unique_identifier
 
@@ -468,6 +483,7 @@ def test_signal_cleanup_on_reset_all(conn):
 def test_reset_signalizes(make_conn, make_process):
     """Call to reset() causes LPUSH to signal key, so blocked waiters
     become unblocked."""
+
     def workerfn(unblocked):
         conn = make_conn()
         lock = Lock(conn, 'lock')
@@ -491,6 +507,7 @@ def test_reset_signalizes(make_conn, make_process):
 def test_reset_all_signalizes(make_conn, make_process):
     """Call to reset_all() causes LPUSH to all signal keys, so blocked waiters
     become unblocked."""
+
     def workerfn(unblocked):
         conn = make_conn()
         lock1 = Lock(conn, 'lock1')

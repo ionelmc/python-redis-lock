@@ -6,7 +6,6 @@ import os
 import sys
 import time
 
-from process_tests import setup_coverage
 from redis import StrictRedis
 
 from redis_lock import Lock
@@ -22,8 +21,6 @@ if __name__ == '__main__':
         datefmt="%x~%X"
     )
     test_name = sys.argv[1]
-
-    setup_coverage()
 
     if test_name == 'test_simple':
         conn = StrictRedis(unix_socket_path=UDS_PATH)
@@ -44,6 +41,42 @@ if __name__ == '__main__':
             time.sleep(0.1)
         with Lock(conn, "foobar", expire=TIMEOUT/4):
             time.sleep(0.1)
+    elif test_name == 'test_race_on_release':
+        for i in range(100):
+            logging.debug('Running iteration %s', i)
+            from sched import scheduler
+            sched = scheduler(time.time, time.sleep)
+            start = time.time() + 0.2
+
+            conn = StrictRedis(unix_socket_path=UDS_PATH)
+            lock = Lock(conn, "foobar-%s" % i)
+            lock.acquire()
+
+            def cb_race_on_release():
+                if pid:
+                    if lock.acquire(blocking=False):
+                        logging.critical('(iteration: %s) stole lock', i)
+                else:
+                    lock.release()
+
+            sched.enterabs(start, 0, cb_race_on_release, ())
+            pid = os.fork()
+            if pid:
+                pid2 = os.fork()
+                if pid2:
+                    conn = StrictRedis(unix_socket_path=UDS_PATH)
+                    lock = Lock(conn, "foobar-%s" % i)
+                    sched.run()
+                    os.waitpid(pid2, os.WNOHANG)
+                else:
+                    conn = StrictRedis(unix_socket_path=UDS_PATH)
+                    lock = Lock(conn, "foobar-%s" % i)
+                    lock.acquire()
+                    logging.info('(iteration: %s) got lock from blocking acquire', i)
+                os.waitpid(pid, os.WNOHANG)
+                os._exit(0)
+            else:
+                sched.run()
     elif test_name == 'test_no_overlap':
         from sched import scheduler
         sched = scheduler(time.time, time.sleep)
