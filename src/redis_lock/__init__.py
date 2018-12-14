@@ -1,13 +1,13 @@
 import threading
 from logging import getLogger
-from os import urandom
 from hashlib import sha1
+import uuid
 import weakref
 
 from redis import StrictRedis
 from redis.exceptions import NoScriptError
 
-__version__ = "3.2.0"
+__version__ = "3.2.1"
 
 logger = getLogger(__name__)
 
@@ -169,7 +169,7 @@ class Lock(object):
         self._client = redis_client
         self._expire = expire if expire is None else int(expire)
         if id is None:
-            self._id = urandom(16)
+            self._id = uuid.uuid4().hex.encode('utf-8')
         elif isinstance(id, bytes):
             self._id = id
         else:
