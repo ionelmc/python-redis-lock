@@ -26,15 +26,16 @@ if __name__ == "__main__":
             subprocess.check_call(["virtualenv", env_path])
         except subprocess.CalledProcessError:
             subprocess.check_call([sys.executable, "-m", "virtualenv", env_path])
-        print("Installing `jinja2` and `matrix` into bootstrap environment...")
-        subprocess.check_call([join(bin_path, "pip"), "install", "jinja2", "matrix"])
-    activate = join(bin_path, "activate_this.py")
-    # noinspection PyCompatibility
-    exec(compile(open(activate, "rb").read(), activate, "exec"), dict(__file__=activate))
+        print("Installing `jinja2` into bootstrap environment...")
+        subprocess.check_call([join(bin_path, "pip"), "install", "jinja2"])
+    python_executable = join(bin_path, "python")
+    if not os.path.samefile(python_executable, sys.executable):
+        print("Re-executing with: {0}".format(python_executable))
+        os.execv(python_executable, [python_executable, __file__])
 
     import jinja2
 
-    import matrix
+    import subprocess
 
     jinja = jinja2.Environment(
         loader=jinja2.FileSystemLoader(join(base_path, "ci", "templates")),
@@ -43,20 +44,12 @@ if __name__ == "__main__":
         keep_trailing_newline=True
     )
 
-    tox_environments = {}
-    for (alias, conf) in matrix.from_file(join(base_path, "setup.cfg")).items():
-        python = conf["python_versions"]
-        deps = conf["dependencies"]
-        tox_environments[alias] = {
-            "python": "python" + python if "py" not in python else python,
-            "deps": deps.split(),
-        }
-        if "coverage_flags" in conf:
-            cover = {"false": False, "true": True}[conf["coverage_flags"].lower()]
-            tox_environments[alias].update(cover=cover)
-        if "environment_variables" in conf:
-            env_vars = conf["environment_variables"]
-            tox_environments[alias].update(env_vars=env_vars.split())
+    tox_environments = [
+        line.strip()
+        # WARNING: 'tox' must be installed globally or in the project's virtualenv
+        for line in subprocess.check_output(['tox', '--listenvs'], universal_newlines=True).splitlines()
+    ]
+    tox_environments = [line for line in tox_environments if line not in ['clean', 'report', 'docs', 'check']]
 
     for name in os.listdir(join("ci", "templates")):
         with open(join(base_path, name), "w") as fh:

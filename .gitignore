@@ -29,6 +29,7 @@ pip-log.txt
 .coverage
 .tox
 .coverage.*
+.pytest_cache/
 nosetests.xml
 coverage.xml
 htmlcov
@@ -62,3 +63,6 @@ docs/_build
 .bootstrap
 .appveyor.token
 *.bak
+
+# Mypy Cache
+.mypy_cache/

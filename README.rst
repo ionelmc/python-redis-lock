@@ -12,10 +12,9 @@ Overview
     * - tests
       - | |travis| |requires|
         | |coveralls| |codecov|
-        | |landscape| |scrutinizer| |codacy| |codeclimate|
     * - package
-      - |version| |downloads| |wheel| |supported-versions| |supported-implementations|
-
+      - | |version| |wheel| |supported-versions| |supported-implementations|
+        | |commits-since|
 .. |docs| image:: https://readthedocs.org/projects/python-redis-lock/badge/?style=flat
     :target: https://readthedocs.org/projects/python-redis-lock
     :alt: Documentation Status
@@ -36,48 +35,32 @@ Overview
     :alt: Coverage Status
     :target: https://codecov.io/github/ionelmc/python-redis-lock
 
-.. |landscape| image:: https://landscape.io/github/ionelmc/python-redis-lock/master/landscape.svg?style=flat
-    :target: https://landscape.io/github/ionelmc/python-redis-lock/master
-    :alt: Code Quality Status
-
-.. |codacy| image:: https://img.shields.io/codacy/REPLACE_WITH_PROJECT_ID.svg?style=flat
-    :target: https://www.codacy.com/app/ionelmc/python-redis-lock
-    :alt: Codacy Code Quality Status
-
-.. |codeclimate| image:: https://codeclimate.com/github/ionelmc/python-redis-lock/badges/gpa.svg
-   :target: https://codeclimate.com/github/ionelmc/python-redis-lock
-   :alt: CodeClimate Quality Status
-
-.. |version| image:: https://img.shields.io/pypi/v/python-redis-lock.svg?style=flat
+.. |version| image:: https://img.shields.io/pypi/v/python-redis-lock.svg
     :alt: PyPI Package latest release
-    :target: https://pypi.python.org/pypi/python-redis-lock
+    :target: https://pypi.org/project/python-redis-lock
 
-.. |downloads| image:: https://img.shields.io/pypi/dm/python-redis-lock.svg?style=flat
-    :alt: PyPI Package monthly downloads
-    :target: https://pypi.python.org/pypi/python-redis-lock
+.. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/python-redis-lock/v3.1.0.svg
+    :alt: Commits since latest release
+    :target: https://github.com/ionelmc/python-redis-lock/compare/v3.1.0...master
 
-.. |wheel| image:: https://img.shields.io/pypi/wheel/python-redis-lock.svg?style=flat
+.. |wheel| image:: https://img.shields.io/pypi/wheel/python-redis-lock.svg
     :alt: PyPI Wheel
-    :target: https://pypi.python.org/pypi/python-redis-lock
+    :target: https://pypi.org/project/python-redis-lock
 
-.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/python-redis-lock.svg?style=flat
+.. |supported-versions| image:: https://img.shields.io/pypi/pyversions/python-redis-lock.svg
     :alt: Supported versions
-    :target: https://pypi.python.org/pypi/python-redis-lock
+    :target: https://pypi.org/project/python-redis-lock
 
-.. |supported-implementations| image:: https://img.shields.io/pypi/implementation/python-redis-lock.svg?style=flat
+.. |supported-implementations| image:: https://img.shields.io/pypi/implementation/python-redis-lock.svg
     :alt: Supported implementations
-    :target: https://pypi.python.org/pypi/python-redis-lock
-
-.. |scrutinizer| image:: https://img.shields.io/scrutinizer/g/ionelmc/python-redis-lock/master.svg?style=flat
-    :alt: Scrutinizer Status
-    :target: https://scrutinizer-ci.com/g/ionelmc/python-redis-lock/
+    :target: https://pypi.org/project/python-redis-lock
 
 
 .. end-badges
 
 Lock context manager implemented via redis SETNX/BLPOP.
 
-* Free software: BSD license
+* Free software: BSD 2-Clause License
 
 Interface targeted to be exactly like `threading.Lock <http://docs.python.org/2/library/threading.html#threading.Lock>`_.
 
