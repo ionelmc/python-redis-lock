@@ -2,6 +2,11 @@
 Changelog
 =========
 
+3.3.0 (???)
+------------------
+
+* "%(script)s not cached" log is not logged as a warning anymore. INFO log level is used instead.
+
 3.2.0 (2016-10-29)
 ------------------
 
