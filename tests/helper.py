@@ -6,7 +6,6 @@ import os
 import sys
 import time
 
-from process_tests import setup_coverage
 from redis import StrictRedis
 
 from redis_lock import Lock
@@ -22,8 +21,6 @@ if __name__ == '__main__':
         datefmt="%x~%X"
     )
     test_name = sys.argv[1]
-
-    setup_coverage()
 
     if test_name == 'test_simple':
         conn = StrictRedis(unix_socket_path=UDS_PATH)
