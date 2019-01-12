@@ -1,8 +1,10 @@
+import sys
 import threading
+import weakref
+from base64 import b64encode
+from hashlib import sha1
 from logging import getLogger
 from os import urandom
-from hashlib import sha1
-import weakref
 
 from redis import StrictRedis
 from redis.exceptions import NoScriptError
@@ -10,6 +12,16 @@ from redis.exceptions import NoScriptError
 __version__ = "3.2.0"
 
 logger = getLogger(__name__)
+
+PY3 = sys.version_info[0] == 3
+
+if PY3:
+    text_type = str
+    binary_type = bytes
+else:
+    text_type = unicode
+    binary_type = str
+
 
 # Check if the id match. If not, return an error code.
 UNLOCK_SCRIPT = b"""
@@ -169,11 +181,16 @@ class Lock(object):
         self._client = redis_client
         self._expire = expire if expire is None else int(expire)
         if id is None:
-            self._id = urandom(16)
-        elif isinstance(id, bytes):
+            self._id = b64encode(urandom(18)).decode('ascii')
+        elif isinstance(id, binary_type):
+            try:
+                self._id = id.decode('ascii')
+            except UnicodeDecodeError:
+                self._id = b64encode(id).decode('ascii')
+        elif isinstance(id, text_type):
             self._id = id
         else:
-            raise TypeError("Incorrect type for `id`. Must be bytes not %s." % type(id))
+            raise TypeError("Incorrect type for `id`. Must be bytes/str not %s." % type(id))
         self._name = 'lock:'+name
         self._signal = 'lock-signal:'+name
         self._lock_renewal_interval = (float(expire)*2/3
@@ -197,7 +214,10 @@ class Lock(object):
         return self._id
 
     def get_owner_id(self):
-        return self._client.get(self._name)
+        owner_id = self._client.get(self._name)
+        if isinstance(owner_id, binary_type):
+            owner_id = owner_id.decode('ascii')
+        return owner_id
 
     def acquire(self, blocking=True, timeout=None):
         """

@@ -42,11 +42,11 @@ def redis_server(scope='module'):
             yield process
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture(scope='function', params=[True, False], ids=['decode_responses=True', 'decode_responses=False'])
 def make_conn(request, redis_server):
     """Redis connection factory."""
     def make_conn_factory():
-        conn_ = StrictRedis(unix_socket_path=UDS_PATH)
+        conn_ = StrictRedis(unix_socket_path=UDS_PATH, decode_responses=request.param)
         request.addfinalizer(conn_.flushdb)
 
         return conn_
@@ -381,7 +381,7 @@ def test_reset_all(conn):
 
 
 def test_owner_id(conn):
-    unique_identifier = b"foobar-identifier"
+    unique_identifier = "foobar-identifier"
     lock = Lock(conn, "foobar-tok", expire=TIMEOUT/4, id=unique_identifier)
     lock_id = lock.id
     assert lock_id == unique_identifier
@@ -399,7 +399,7 @@ def test_token(conn):
     tok = lock.id
     assert conn.get(lock._name) is None
     lock.acquire(blocking=False)
-    assert conn.get(lock._name) == tok
+    assert conn.get(lock._name).decode('ascii') == tok
 
 
 def test_bogus_release(conn):
@@ -432,7 +432,7 @@ def test_auto_renewal(conn):
     assert lock._lock_renewal_interval == 2
 
     time.sleep(3)
-    assert conn.get(lock._name) == lock.id, "Key expired but it should have been getting renewed"
+    assert conn.get(lock._name).decode('ascii') == lock.id, "Key expired but it should have been getting renewed"
 
     lock.release()
     assert lock._lock_renewal_thread is None
