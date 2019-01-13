@@ -11,6 +11,9 @@ import time
 from collections import defaultdict
 
 import pytest
+from conf import HELPER
+from conf import TIMEOUT
+from conf import UDS_PATH
 from process_tests import TestProcess
 from process_tests import dump_on_error
 from process_tests import wait_for_strings
@@ -25,9 +28,12 @@ from redis_lock import TimeoutNotUsable
 from redis_lock import TimeoutTooLarge
 from redis_lock import reset_all
 
-from conf import HELPER
-from conf import TIMEOUT
-from conf import UDS_PATH
+
+def maybe_decode(data):
+    if isinstance(data, bytes):
+        return data.decode('ascii')
+    else:
+        return data
 
 
 @pytest.yield_fixture
@@ -399,7 +405,7 @@ def test_token(conn):
     tok = lock.id
     assert conn.get(lock._name) is None
     lock.acquire(blocking=False)
-    assert conn.get(lock._name).decode('ascii') == tok
+    assert maybe_decode(conn.get(lock._name)) == tok
 
 
 def test_bogus_release(conn):
@@ -432,7 +438,7 @@ def test_auto_renewal(conn):
     assert lock._lock_renewal_interval == 2
 
     time.sleep(3)
-    assert conn.get(lock._name).decode('ascii') == lock.id, "Key expired but it should have been getting renewed"
+    assert maybe_decode(conn.get(lock._name)) == lock.id, "Key expired but it should have been getting renewed"
 
     lock.release()
     assert lock._lock_renewal_thread is None
