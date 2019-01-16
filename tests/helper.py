@@ -13,7 +13,6 @@ from redis_lock import Lock
 from conf import TIMEOUT
 from conf import UDS_PATH
 
-
 if __name__ == '__main__':
     logging.basicConfig(
         level=logging.DEBUG,
