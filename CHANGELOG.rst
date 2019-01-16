@@ -2,10 +2,15 @@
 Changelog
 =========
 
-3.3.0 (???)
-------------------
+3.3.0 2019-01-17)
+-----------------
 
-* "%(script)s not cached" log is not logged as a warning anymore. INFO log level is used instead.
+* Fixed deprecated use of ``warnings`` API. Contributed by Julie MacDonell in
+  `#54 <https://github.com/ionelmc/python-redis-lock/pull/54>`_.
+* Added ``auto_renewal`` option in ``RedisCache.lock`` (the Django cache backend wrapper). Contributed by c
+  in `#55 <https://github.com/ionelmc/python-redis-lock/pull/55>`_.
+* Changed log level for "%(script)s not cached" from WARNING to INFO.
+* Added support for using ``decode_responses=True``. Lock keys are pure ascii now.
 
 3.2.0 (2016-10-29)
 ------------------
