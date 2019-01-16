@@ -49,18 +49,6 @@ matrix:
       dist: xenial
       env:
         - TOXENV=py37-dj21-nocov
-    - python: 'pypy'
-      env:
-        - TOXENV=pypy-dj111-cover,report,coveralls,codecov
-    - python: 'pypy'
-      env:
-        - TOXENV=pypy-dj111-nocov
-    - python: 'pypy'
-      env:
-        - TOXENV=pypy-dj21-cover,report,coveralls,codecov
-    - python: 'pypy'
-      env:
-        - TOXENV=pypy-dj21-nocov
     - python: 'pypy3'
       env:
         - TOXENV=pypy3-dj111-cover,report,coveralls,codecov
