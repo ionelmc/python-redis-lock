@@ -39,9 +39,9 @@ Overview
     :alt: PyPI Package latest release
     :target: https://pypi.org/project/python-redis-lock
 
-.. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/python-redis-lock/v3.1.0.svg
+.. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/python-redis-lock/v3.3.0.svg
     :alt: Commits since latest release
-    :target: https://github.com/ionelmc/python-redis-lock/compare/v3.1.0...master
+    :target: https://github.com/ionelmc/python-redis-lock/compare/v3.3.0...master
 
 .. |wheel| image:: https://img.shields.io/pypi/wheel/python-redis-lock.svg
     :alt: PyPI Wheel
@@ -126,10 +126,10 @@ Now put something like this in your settings::
 
 
 .. note::
-    
 
-    If using a `django-redis` < `3.8.x`, you'll probably need `redis_cache` 
-    which has been deprecated in favor to `django_redis`. The `redis_cache` 
+
+    If using a `django-redis` < `3.8.x`, you'll probably need `redis_cache`
+    which has been deprecated in favor to `django_redis`. The `redis_cache`
     module is removed in `django-redis` versions > `3.9.x`. See `django-redis notes <http://niwinz.github.io/django-redis/latest/#_configure_as_cache_backend>`_.
 
 
