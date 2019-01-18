@@ -9,6 +9,7 @@ import sys
 import threading
 import time
 from collections import defaultdict
+from functools import partial
 
 import pytest
 from process_tests import TestProcess
@@ -49,17 +50,17 @@ def redis_server(scope='module'):
             yield process
 
 
+def make_conn_factory(addfinalizer, **options):
+    conn = StrictRedis(unix_socket_path=UDS_PATH, **options)
+    addfinalizer(conn.flushdb)
+
+    return conn
+
+
 @pytest.fixture(scope='function', params=[True, False], ids=['decode_responses=True', 'decode_responses=False'])
 def make_conn(request, redis_server):
     """Redis connection factory."""
-
-    def make_conn_factory():
-        conn_ = StrictRedis(unix_socket_path=UDS_PATH, decode_responses=request.param)
-        request.addfinalizer(conn_.flushdb)
-
-        return conn_
-
-    return make_conn_factory
+    return partial(make_conn_factory, request.addfinalizer, decode_responses=request.param, encoding_errors='replace')
 
 
 @pytest.fixture(scope='function')
@@ -80,6 +81,13 @@ def make_process(request):
         return process
 
     return make_process_factory
+
+
+def test_upgrade(request, conn):
+    legacy_conn = make_conn_factory(request.addfinalizer, decode_responses=False)
+    lock = Lock(conn, "foobar")
+    legacy_conn.set(lock._name, b'\xd6{\xc93\xe9\xbd,\xdb\xb6\xa8<\x8ax\xd1<\xb9', nx=True, ex=lock._expire)
+    assert not lock.acquire(blocking=False)
 
 
 def test_simple(redis_server):

@@ -216,7 +216,7 @@ class Lock(object):
     def get_owner_id(self):
         owner_id = self._client.get(self._name)
         if isinstance(owner_id, binary_type):
-            owner_id = owner_id.decode('ascii')
+            owner_id = owner_id.decode('ascii', 'replace')
         return owner_id
 
     def acquire(self, blocking=True, timeout=None):
