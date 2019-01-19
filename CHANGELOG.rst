@@ -2,8 +2,14 @@
 Changelog
 =========
 
-3.3.0 2019-01-17)
------------------
+3.3.1 (2019-01-19)
+------------------
+
+* Fixed failures when running python-redis-lock 3.3 alongside 3.2.
+  See: `#64 <https://github.com/ionelmc/python-redis-lock/issues/64>`_.
+
+3.3.0 (2019-01-17)
+------------------
 
 * Fixed deprecated use of ``warnings`` API. Contributed by Julie MacDonell in
   `#54 <https://github.com/ionelmc/python-redis-lock/pull/54>`_.
