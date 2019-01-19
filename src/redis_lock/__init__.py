@@ -9,7 +9,7 @@ from os import urandom
 from redis import StrictRedis
 from redis.exceptions import NoScriptError
 
-__version__ = '3.3.0'
+__version__ = '3.3.1'
 
 logger = getLogger(__name__)
 

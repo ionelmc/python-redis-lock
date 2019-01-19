@@ -39,9 +39,9 @@ Overview
     :alt: PyPI Package latest release
     :target: https://pypi.org/project/python-redis-lock
 
-.. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/python-redis-lock/v3.3.0.svg
+.. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/python-redis-lock/v3.3.1.svg
     :alt: Commits since latest release
-    :target: https://github.com/ionelmc/python-redis-lock/compare/v3.3.0...master
+    :target: https://github.com/ionelmc/python-redis-lock/compare/v3.3.1...master
 
 .. |wheel| image:: https://img.shields.io/pypi/wheel/python-redis-lock.svg
     :alt: PyPI Wheel

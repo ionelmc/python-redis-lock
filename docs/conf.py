@@ -26,7 +26,7 @@ project = 'redis-lock'
 year = '2013-2019'
 author = 'Ionel Cristian Mărieș'
 copyright = '{0}, {1}'.format(year, author)
-version = release = '3.3.0'
+version = release = '3.3.1'
 
 pygments_style = 'trac'
 templates_path = ['.']
