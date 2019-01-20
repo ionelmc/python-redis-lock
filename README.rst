@@ -166,7 +166,7 @@ keep resetting the expire time while your application code is executing::
 
     # Get a lock with a 60-second lifetime but keep renewing it automatically
     # to ensure the lock is held for as long as the Python process is running.
-    with redis_lock.Lock(conn,name='my-lock', expire=60, auto_renewal=True):
+    with redis_lock.Lock(conn, name='my-lock', expire=60, auto_renewal=True):
         # Do work....
 
 Another solution is to use the ``reset_all()`` function when the application starts::
