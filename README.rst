@@ -80,6 +80,7 @@ Eg::
     lock = redis_lock.Lock(conn, "name-of-the-lock")
     if lock.acquire(blocking=False):
         print("Got the lock.")
+        lock.release()
     else:
         print("Someone else has the lock.")
 
@@ -93,6 +94,7 @@ owns the lock). Eg::
     lock = redis_lock.Lock(conn, "name-of-the-lock", id=host_id)
     if lock.acquire(blocking=False):
         print("Got the lock.")
+        lock.release()
     else:
         if lock.get_owner_id() == host_id:
             print("I already acquired this in another process.")
