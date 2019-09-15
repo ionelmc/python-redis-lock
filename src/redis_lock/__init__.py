@@ -367,9 +367,8 @@ class Lock(object):
         else:
             self._delete_signal()
 
-    @classmethod
-    def is_locked(self, redis_client, name):
-        return redis_client.exists('lock:'+name)
+    def is_locked(self):
+        return self._client.exists(self._name)
 
     def _delete_signal(self):
         self._client.delete(self._signal)
