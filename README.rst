@@ -69,9 +69,6 @@ Usage
 
 Because we don't want to require users to share the lock instance across processes you will have to give them names.
 
-Locks
-=====
-
 .. code-block:: python
 
     lock = redis_lock.Lock(conn, "name-of-the-lock")
