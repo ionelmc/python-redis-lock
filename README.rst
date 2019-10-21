@@ -69,14 +69,11 @@ Usage
 =====
 
 Because we don't want to require users to share the lock instance across processes you will have to give them names.
-Eg::
 
-    conn = StrictRedis()
-    with redis_lock.Lock(conn, "name-of-the-lock"):
-        print("Got the lock. Doing some work ...")
-        time.sleep(5)
+Locks
+=====
 
-Eg::
+.. code-block:: python
 
     lock = redis_lock.Lock(conn, "name-of-the-lock")
     if lock.acquire(blocking=False):
@@ -85,10 +82,22 @@ Eg::
     else:
         print("Someone else has the lock.")
 
+Locks as Context Managers
+=========================
+
+.. code-block:: python
+
+    conn = StrictRedis()
+    with redis_lock.Lock(conn, "name-of-the-lock"):
+        print("Got the lock. Doing some work ...")
+        time.sleep(5)
+
 
 You can also associate an identifier along with the lock so that it can be retrieved later by the same process, or by a
 different one. This is useful in cases where the application needs to identify the lock owner (find out who currently
-owns the lock). Eg::
+owns the lock).
+
+.. code-block:: python
 
     import socket
     host_id = "owned-by-%s" % socket.gethostname()
@@ -111,11 +120,15 @@ without serving stale data. The work will be performed a single time and every c
 
 To use this you will need `django-redis <https://github.com/niwibe/django-redis>`_, however, ``python-redis-lock``
 provides you a cache backend that has a cache method for your convenience. Just install ``python-redis-lock`` like
-this::
+this:
+
+.. code-block:: bash
 
     pip install "python-redis-lock[django]"
 
-Now put something like this in your settings::
+Now put something like this in your settings:
+
+.. code-block:: python
 
     CACHES = {
         'default': {
@@ -127,10 +140,7 @@ Now put something like this in your settings::
         }
     }
 
-
 .. note::
-
-
     If using a `django-redis` < `3.8.x`, you'll probably need `redis_cache`
     which has been deprecated in favor to `django_redis`. The `redis_cache`
     module is removed in `django-redis` versions > `3.9.x`. See `django-redis notes <http://niwinz.github.io/django-redis/latest/#_configure_as_cache_backend>`_.
@@ -138,25 +148,22 @@ Now put something like this in your settings::
 
 This backend just adds a convenient ``.lock(name, expire=None)`` function to django-redis's cache backend.
 
-You would write your functions like this::
+You would write your functions like this:
+
+.. code-block:: python
 
     from django.core.cache import cache
 
     def function():
         val = cache.get(key)
-        if val:
-            return val
-        else:
+        if not val:
             with cache.lock(key):
                 val = cache.get(key)
-                if val:
-                    return val
-                else:
+                if not val:
                     # DO EXPENSIVE WORK
                     val = ...
-
                     cache.set(key, value)
-                    return val
+        return val
 
 
 Troubleshooting
@@ -165,20 +172,24 @@ Troubleshooting
 In some cases, the lock remains in redis forever (like a server blackout / redis or application crash / an unhandled
 exception). In such cases, the lock is not removed by restarting the application. One solution is to turn on the
 `auto_renewal` parameter in combination with `expire` to set a time-out on the lock, but let `Lock()` automatically
-keep resetting the expire time while your application code is executing::
+keep resetting the expire time while your application code is executing:
+
+.. code-block:: python
 
     # Get a lock with a 60-second lifetime but keep renewing it automatically
     # to ensure the lock is held for as long as the Python process is running.
     with redis_lock.Lock(conn, name='my-lock', expire=60, auto_renewal=True):
         # Do work....
 
-Another solution is to use the ``reset_all()`` function when the application starts::
+Another solution is to use the ``reset_all()`` function when the application starts:
+
+.. code-block:: python
 
     # On application start/restart
     import redis_lock
     redis_lock.reset_all()
 
-Alternativelly, you can reset individual locks via the ``reset`` method.
+Alternatively, you can reset individual locks via the ``reset`` method.
 
 Use these carefully, if you understand what you do.
 
