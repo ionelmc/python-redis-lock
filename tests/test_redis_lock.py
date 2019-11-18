@@ -581,3 +581,13 @@ def test_given_id(conn):
 def test_strict_check():
     pytest.raises(ValueError, Lock, object(), name='foobar')
     Lock(object(), name='foobar', strict=False)
+
+
+def test_is_locked(conn):
+    name = 'foobar'
+    key_name = 'lock:' + name
+    with Lock(conn, name, expire=100) as lock:
+        assert lock.is_locked()
+
+    lock = Lock(conn, key_name)
+    assert not lock.is_locked()
