@@ -30,7 +30,7 @@ UNLOCK_SCRIPT = b"""
     else
         redis.call("del", KEYS[2])
         redis.call("lpush", KEYS[2], 1)
-        redis.call("expire", KEYS[2], 1)
+        redis.call("pexpire", KEYS[2], KEYS[3])
         redis.call("del", KEYS[1])
         return 0
     end
@@ -53,7 +53,7 @@ EXTEND_SCRIPT_HASH = sha1(EXTEND_SCRIPT).hexdigest()
 RESET_SCRIPT = b"""
     redis.call('del', KEYS[2])
     redis.call('lpush', KEYS[2], 1)
-    redis.call('expire', KEYS[2], 1)
+    redis.call('pexpire', KEYS[2], KEYS[3])
     return redis.call('del', KEYS[1])
 """
 
@@ -103,10 +103,10 @@ class NotExpirable(RuntimeError):
     pass
 
 
-((UNLOCK, _, _,   # noqa
-  EXTEND, _, _,
-  RESET, _, _,
-  RESET_ALL, _, _),
+((UNLOCK_SCRIPT, _, _,  # noqa
+  EXTEND_SCRIPT, _, _,
+  RESET_SCRIPT, _, _,
+  RESET_ALL_SCRIPT, _, _),
  SCRIPTS) = zip(*enumerate([
     UNLOCK_SCRIPT_HASH, UNLOCK_SCRIPT, 'UNLOCK_SCRIPT',
     EXTEND_SCRIPT_HASH, EXTEND_SCRIPT, 'EXTEND_SCRIPT',
@@ -134,7 +134,7 @@ class Lock(object):
     A Lock context manager implemented via redis SETNX/BLPOP.
     """
 
-    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, strict=True):
+    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, strict=True, signal_expire=1000):
         """
         :param redis_client:
             An instance of :class:`~StrictRedis`.
@@ -160,6 +160,8 @@ class Lock(object):
             ``self._lock_renewal_interval`` to your desired interval.
         :param strict:
             If set ``True`` then the ``redis_client`` needs to be an instance of ``redis.StrictRedis``.
+        :param signal_expire:
+            Advanced option to override signal list expiration in milliseconds. Increase it for very slow clients. Default: ``1000``.
         """
         if strict and not isinstance(redis_client, StrictRedis):
             raise ValueError("redis_client must be instance of StrictRedis. "
@@ -169,6 +171,7 @@ class Lock(object):
 
         self._client = redis_client
         self._expire = expire if expire is None else int(expire)
+        self._signal_expire = signal_expire
         if id is None:
             self._id = b64encode(urandom(18)).decode('ascii')
         elif isinstance(id, binary_type):
@@ -195,7 +198,7 @@ class Lock(object):
         """
         Forcibly deletes the lock. Use this with care.
         """
-        _eval_script(self._client, RESET, self._name, self._signal)
+        _eval_script(self._client, RESET_SCRIPT, self._name, self._signal, self._signal_expire)
 
     @property
     def id(self):
@@ -263,7 +266,7 @@ class Lock(object):
                     "To extend a lock 'expire' must be provided as an "
                     "argument to extend() method or at initialization time."
                 )
-        error = _eval_script(self._client, EXTEND, self._name, args=(expire, self._id))
+        error = _eval_script(self._client, EXTEND_SCRIPT, self._name, args=(expire, self._id))
         if error == 1:
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error == 2:
@@ -347,7 +350,7 @@ class Lock(object):
         if self._lock_renewal_thread is not None:
             self._stop_lock_renewer()
         logger.debug("Releasing %r.", self._name)
-        error = _eval_script(self._client, UNLOCK, self._name, self._signal, args=(self._id,))
+        error = _eval_script(self._client, UNLOCK_SCRIPT, self._name, self._signal, self._signal_expire, args=(self._id,))
         if error == 1:
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error:
@@ -358,4 +361,4 @@ def reset_all(redis_client):
     """
     Forcibly deletes all locks if its remains (like a crash reason). Use this with care.
     """
-    _eval_script(redis_client, RESET_ALL)
+    _eval_script(redis_client, RESET_ALL_SCRIPT)

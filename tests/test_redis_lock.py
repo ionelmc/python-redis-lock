@@ -467,31 +467,20 @@ def test_auto_renewal(conn):
     assert lock._lock_renewal_thread is None
 
 
-def test_signal_expiration(conn):
+@pytest.mark.parametrize('signal_expire', [1000, 1500])
+@pytest.mark.parametrize('method', ['release', 'reset_all'])
+def test_signal_expiration(conn, signal_expire, method):
     """Signal keys expire within two seconds after releasing the lock."""
-    lock = Lock(conn, 'signal_expiration')
+    lock = Lock(conn, 'signal_expiration', signal_expire=signal_expire)
     lock.acquire()
-    lock.release()
-    time.sleep(2)
+    if method == 'release':
+        lock.release()
+    elif method == 'reset_all':
+        reset_all(conn)
+    time.sleep(0.5)
+    assert conn.exists('lock-signal:signal_expiration')
+    time.sleep((signal_expire - 500) / 1000.0)
     assert conn.llen('lock-signal:signal_expiration') == 0
-
-
-def test_signal_cleanup_on_reset(conn):
-    """After resetting a lock, the signal key should not remain."""
-    lock = Lock(conn, 'foo')
-    lock.acquire()
-    lock.reset()
-    assert conn.llen('lock-signal:foo') == 0
-    assert conn.exists('lock-signal:foo') == 0
-
-
-def test_signal_cleanup_on_reset_all(conn):
-    """After resetting all locks, no signal keys should not remain."""
-    lock = Lock(conn, 'foo')
-    lock.acquire()
-    reset_all(conn)
-    assert conn.llen('lock-signal:foo') == 0
-    assert conn.exists('lock-signal:foo') == 0
 
 
 def test_reset_signalizes(make_conn, make_process):
