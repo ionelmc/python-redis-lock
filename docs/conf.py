@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import os
 
-
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
@@ -15,18 +14,13 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
 ]
-if os.getenv('SPELLCHECK'):
-    extensions += 'sphinxcontrib.spelling',
-    spelling_show_suggestions = True
-    spelling_lang = 'en_US'
-
 source_suffix = '.rst'
 master_doc = 'index'
 project = 'redis-lock'
 year = '2013-2019'
 author = 'Ionel Cristian Mărieș'
 copyright = '{0}, {1}'.format(year, author)
-version = release = '3.3.1'
+version = release = '3.1.0'
 
 pygments_style = 'trac'
 templates_path = ['.']

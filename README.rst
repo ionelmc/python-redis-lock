@@ -19,7 +19,7 @@ Overview
     :target: https://readthedocs.org/projects/python-redis-lock
     :alt: Documentation Status
 
-.. |travis| image:: https://travis-ci.org/ionelmc/python-redis-lock.svg?branch=master
+.. |travis| image:: https://api.travis-ci.org/ionelmc/python-redis-lock.svg?branch=master
     :alt: Travis-CI Build Status
     :target: https://travis-ci.org/ionelmc/python-redis-lock
 
@@ -39,10 +39,6 @@ Overview
     :alt: PyPI Package latest release
     :target: https://pypi.org/project/python-redis-lock
 
-.. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/python-redis-lock/v3.3.1.svg
-    :alt: Commits since latest release
-    :target: https://github.com/ionelmc/python-redis-lock/compare/v3.3.1...master
-
 .. |wheel| image:: https://img.shields.io/pypi/wheel/python-redis-lock.svg
     :alt: PyPI Wheel
     :target: https://pypi.org/project/python-redis-lock
@@ -54,6 +50,11 @@ Overview
 .. |supported-implementations| image:: https://img.shields.io/pypi/implementation/python-redis-lock.svg
     :alt: Supported implementations
     :target: https://pypi.org/project/python-redis-lock
+
+.. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/python-redis-lock/v3.1.0.svg
+    :alt: Commits since latest release
+    :target: https://github.com/ionelmc/python-redis-lock/compare/v3.1.0...master
+
 
 
 .. end-badges

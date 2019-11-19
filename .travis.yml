@@ -1,109 +1,104 @@
 language: python
-cache: pip
+dist: xenial
+cache: false
 env:
   global:
     - LD_PRELOAD=/lib/x86_64-linux-gnu/libSegFault.so
     - SEGFAULT_SIGNALS=all
-  matrix:
-    - TOXENV=check
-    - TOXENV=docs
 matrix:
   include:
-    - python: '3.5'
+    - python: '3.6'
       env:
-        - TOXENV=py35-dj111-cover,report,coveralls,codecov
-    - python: '3.5'
+        - TOXENV=check
+    - python: '3.6'
       env:
+        - TOXENV=docs
+    - env:
+        - TOXENV=py35-dj111-cover,codecov,coveralls
+      python: '3.5'
+    - env:
         - TOXENV=py35-dj111-nocov
-    - python: '3.5'
-      env:
-        - TOXENV=py35-dj21-cover,report,coveralls,codecov
-    - python: '3.5'
-      env:
-        - TOXENV=py35-dj21-nocov
-    - python: '3.6'
-      env:
-        - TOXENV=py36-dj111-cover,report,coveralls,codecov
-    - python: '3.6'
-      env:
+      python: '3.5'
+    - env:
+        - TOXENV=py35-dj22-cover,codecov,coveralls
+      python: '3.5'
+    - env:
+        - TOXENV=py35-dj22-nocov
+      python: '3.5'
+    - env:
+        - TOXENV=py36-dj111-cover,codecov,coveralls
+      python: '3.6'
+    - env:
         - TOXENV=py36-dj111-nocov
-    - python: '3.6'
-      env:
-        - TOXENV=py36-dj21-cover,report,coveralls,codecov
-    - python: '3.6'
-      env:
-        - TOXENV=py36-dj21-nocov
-    - python: '3.7'
-      dist: xenial
-      env:
-        - TOXENV=py37-dj111-cover,report,coveralls,codecov
-    - python: '3.7'
-      dist: xenial
-      env:
+      python: '3.6'
+    - env:
+        - TOXENV=py36-dj22-cover,codecov,coveralls
+      python: '3.6'
+    - env:
+        - TOXENV=py36-dj22-nocov
+      python: '3.6'
+    - env:
+        - TOXENV=py37-dj111-cover,codecov,coveralls
+      python: '3.7'
+    - env:
         - TOXENV=py37-dj111-nocov
-    - python: '3.7'
-      dist: xenial
-      env:
-        - TOXENV=py37-dj21-cover,report,coveralls,codecov
-    - python: '3.7'
-      dist: xenial
-      env:
-        - TOXENV=py37-dj21-nocov
-    - python: 'pypy3'
-      env:
-        - TOXENV=pypy3-dj111-cover,report,coveralls,codecov
-    - python: 'pypy3'
-      env:
+      python: '3.7'
+    - env:
+        - TOXENV=py37-dj22-cover,codecov,coveralls
+      python: '3.7'
+    - env:
+        - TOXENV=py37-dj22-nocov
+      python: '3.7'
+    - env:
+        - TOXENV=py38-dj111-cover,codecov,coveralls
+      python: '3.8'
+    - env:
+        - TOXENV=py38-dj111-nocov
+      python: '3.8'
+    - env:
+        - TOXENV=py38-dj22-cover,codecov,coveralls
+      python: '3.8'
+    - env:
+        - TOXENV=py38-dj22-nocov
+      python: '3.8'
+    - env:
+        - TOXENV=pypy3-dj111-cover,codecov,coveralls
+        - TOXPYTHON=pypy3
+      python: 'pypy3'
+    - env:
         - TOXENV=pypy3-dj111-nocov
-    - python: 'pypy3'
-      env:
-        - TOXENV=pypy3-dj21-cover,report,coveralls,codecov
-    - python: 'pypy3'
-      env:
-        - TOXENV=pypy3-dj21-nocov
-    - python: '2.7'
-      env:
-        - TOXENV=py27-dj111-cover,report,coveralls,codecov
-    - python: '2.7'
-      env:
+        - TOXPYTHON=pypy3
+      python: 'pypy3'
+    - env:
+        - TOXENV=pypy3-dj22-cover,codecov,coveralls
+        - TOXPYTHON=pypy3
+      python: 'pypy3'
+    - env:
+        - TOXENV=pypy3-dj22-nocov
+        - TOXPYTHON=pypy3
+      python: 'pypy3'
+    - env:
+        - TOXENV=py27-dj111-cover,codecov,coveralls
+      python: '2.7'
+    - env:
         - TOXENV=py27-dj111-nocov
-    - python: 'pypy'
-      env:
-        - TOXENV=pypy-dj111-cover,report,coveralls,codecov
-    - python: 'pypy'
-      env:
+      python: '2.7'
+    - env:
+        - TOXENV=pypy-dj111-cover,codecov,coveralls
+      python: 'pypy'
+    - env:
         - TOXENV=pypy-dj111-nocov
+      python: 'pypy'
 before_install:
   - python --version
   - uname -a
-  - lsb_release -a
+  - lsb_release -a || true
 install:
-  - pip install tox
+  - python -mpip install --progress-bar=off tox -rci/requirements.txt
   - virtualenv --version
   - easy_install --version
   - pip --version
   - tox --version
-  - |
-    set -ex
-    if [[ $TRAVIS_PYTHON_VERSION == 'pypy' ]]; then
-        (cd $HOME
-         wget https://bitbucket.org/pypy/pypy/downloads/pypy2-v6.0.0-linux64.tar.bz2
-         tar xf pypy2-*.tar.bz2
-         pypy2-*/bin/pypy -m ensurepip
-         pypy2-*/bin/pypy -m pip install -U virtualenv)
-        export PATH=$(echo $HOME/pypy2-*/bin):$PATH
-        export TOXPYTHON=$(echo $HOME/pypy2-*/bin/pypy)
-    fi
-    if [[ $TRAVIS_PYTHON_VERSION == 'pypy3' ]]; then
-        (cd $HOME
-         wget https://bitbucket.org/pypy/pypy/downloads/pypy3-v6.0.0-linux64.tar.bz2
-         tar xf pypy3-*.tar.bz2
-         pypy3-*/bin/pypy3 -m ensurepip
-         pypy3-*/bin/pypy3 -m pip install -U virtualenv)
-        export PATH=$(echo $HOME/pypy3-*/bin):$PATH
-        export TOXPYTHON=$(echo $HOME/pypy3-*/bin/pypy3)
-    fi
-    set +x
 script:
   - tox -v
 after_failure:
