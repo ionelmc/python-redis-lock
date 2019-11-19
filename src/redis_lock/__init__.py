@@ -30,6 +30,7 @@ UNLOCK_SCRIPT = b"""
     else
         redis.call("del", KEYS[2])
         redis.call("lpush", KEYS[2], 1)
+        redis.call("expire", KEYS[2], 1)
         redis.call("del", KEYS[1])
         return 0
     end
@@ -52,6 +53,7 @@ EXTEND_SCRIPT_HASH = sha1(EXTEND_SCRIPT).hexdigest()
 RESET_SCRIPT = b"""
     redis.call('del', KEYS[2])
     redis.call('lpush', KEYS[2], 1)
+    redis.call('expire', KEYS[2], 1)
     return redis.call('del', KEYS[1])
 """
 
@@ -64,23 +66,13 @@ RESET_ALL_SCRIPT = b"""
         signal = 'lock-signal:' .. string.sub(lock, 6)
         redis.call('del', signal)
         redis.call('lpush', signal, 1)
+        redis.call('expire', signal, 1)
         redis.call('del', lock)
     end
     return #locks
 """
 
 RESET_ALL_SCRIPT_HASH = sha1(RESET_ALL_SCRIPT).hexdigest()
-
-DELETE_ALL_SIGNAL_KEYS_SCRIPT = b"""
-    local signals = redis.call('keys', 'lock-signal:*')
-    for _, signal in pairs(signals) do
-        redis.call('del', signal)
-    end
-    return #signals
-"""
-
-DELETE_ALL_SIGNAL_KEYS_SCRIPT_HASH = (sha1(DELETE_ALL_SIGNAL_KEYS_SCRIPT)
-                                      .hexdigest())
 
 
 class AlreadyAcquired(RuntimeError):
@@ -114,15 +106,12 @@ class NotExpirable(RuntimeError):
 ((UNLOCK, _, _,   # noqa
   EXTEND, _, _,
   RESET, _, _,
-  RESET_ALL, _, _,
-  DELETE_ALL_SIGNAL_KEYS, _, _),
+  RESET_ALL, _, _),
  SCRIPTS) = zip(*enumerate([
     UNLOCK_SCRIPT_HASH, UNLOCK_SCRIPT, 'UNLOCK_SCRIPT',
     EXTEND_SCRIPT_HASH, EXTEND_SCRIPT, 'EXTEND_SCRIPT',
     RESET_SCRIPT_HASH, RESET_SCRIPT, 'RESET_SCRIPT',
-    RESET_ALL_SCRIPT_HASH, RESET_ALL_SCRIPT, 'RESET_ALL_SCRIPT',
-    DELETE_ALL_SIGNAL_KEYS_SCRIPT_HASH, DELETE_ALL_SIGNAL_KEYS_SCRIPT,
-    'DELETE_ALL_SIGNAL_KEYS_SCRIPT'
+    RESET_ALL_SCRIPT_HASH, RESET_ALL_SCRIPT, 'RESET_ALL_SCRIPT'
 ]))
 
 
@@ -207,7 +196,6 @@ class Lock(object):
         Forcibly deletes the lock. Use this with care.
         """
         _eval_script(self._client, RESET, self._name, self._signal)
-        self._delete_signal()
 
     @property
     def id(self):
@@ -364,11 +352,6 @@ class Lock(object):
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error:
             raise RuntimeError("Unsupported error code %s from EXTEND script." % error)
-        else:
-            self._delete_signal()
-
-    def _delete_signal(self):
-        self._client.delete(self._signal)
 
 
 def reset_all(redis_client):
@@ -376,4 +359,3 @@ def reset_all(redis_client):
     Forcibly deletes all locks if its remains (like a crash reason). Use this with care.
     """
     _eval_script(redis_client, RESET_ALL)
-    _eval_script(redis_client, DELETE_ALL_SIGNAL_KEYS)
