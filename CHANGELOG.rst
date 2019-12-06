@@ -2,6 +2,13 @@
 Changelog
 =========
 
+
+3.4.0 (2019-12-06)
+------------------
+
+* Fixed regression that can cause deadlocks or slowdowns in certain configurations.
+  See: `#71 <https://github.com/ionelmc/python-redis-lock/issues/71>`_.
+
 3.3.1 (2019-01-19)
 ------------------
 
