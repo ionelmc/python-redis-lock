@@ -578,3 +578,20 @@ def test_given_id(conn):
 def test_strict_check():
     pytest.raises(ValueError, Lock, object(), name='foobar')
     Lock(object(), name='foobar', strict=False)
+
+
+def test_locked_method(conn):
+    lock_name = 'lock_name'
+
+    lock = Lock(conn, lock_name, id='first')
+    another_lock = Lock(conn, lock_name, id='another')
+
+    assert lock.locked() is False
+    assert another_lock.locked() is False
+
+    assert lock.acquire() is True
+
+    # another lock has same name and different id,
+    # but method returns true
+    assert lock.locked() is True
+    assert another_lock.locked() is True

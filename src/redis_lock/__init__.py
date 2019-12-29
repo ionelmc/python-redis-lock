@@ -356,6 +356,15 @@ class Lock(object):
         elif error:
             raise RuntimeError("Unsupported error code %s from EXTEND script." % error)
 
+    def locked(self):
+        """
+        Return true if the lock is acquired.
+
+        Check that lock with same name already exists. This method returns true, even if
+        lock have another id.
+        """
+        return self._client.exists(self._name) == 1
+
 
 def reset_all(redis_client):
     """
