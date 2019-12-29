@@ -57,3 +57,8 @@ user need to ensure, that it has a matching ``id``, example::
     lock1.acquire()
     lock2 = Lock(conn, "foo", id=lock1.id)
     lock2.release()
+
+To check if lock with same name is already locked
+(it can be this or another lock with identical names)::
+
+    is_locked = Lock(conn, "lock-name").locked()
