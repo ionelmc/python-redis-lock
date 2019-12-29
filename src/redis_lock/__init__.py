@@ -360,7 +360,7 @@ class Lock(object):
         """
         Return true if the lock is acquired.
 
-        Check that lock with same name already exists. This method returns true, even if
+        Checks that lock with same name already exists. This method returns true, even if
         lock have another id.
         """
         return self._client.exists(self._name) == 1
