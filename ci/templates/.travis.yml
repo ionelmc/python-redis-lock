@@ -15,7 +15,7 @@ matrix:
         - TOXENV=docs
 {%- for env in tox_environments %}{{ '' }}
     - env:
-        - TOXENV={{ env }}{% if 'cover' in env %},codecov{% endif %}
+        - TOXENV={{ env }}{% if 'cover' in env %},codecov,coveralls{% endif %}
 {%- if env.startswith('pypy3') %}{{ '' }}
         - TOXPYTHON=pypy3
       python: 'pypy3'

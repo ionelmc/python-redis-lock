@@ -10,7 +10,7 @@ Overview
     * - docs
       - |docs|
     * - tests
-      - |travis| |requires| |codecov|
+      - |travis| |requires| |codecov| |coveralls|
     * - package
       - |version| |wheel| |supported-versions| |supported-implementations| |commits-since|
 .. |docs| image:: https://readthedocs.org/projects/python-redis-lock/badge/?style=flat
