@@ -2,6 +2,10 @@
 Changelog
 =========
 
+3.5.0 (2020-01-12)
+------------------
+
+* Added a ``locked`` method. Contributed by Artem Slobodkin in `#71 <https://github.com/ionelmc/python-redis-lock/pull/72>`_.
 
 3.4.0 (2019-12-06)
 ------------------

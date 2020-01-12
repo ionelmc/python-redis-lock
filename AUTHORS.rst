@@ -14,3 +14,4 @@ Authors
 * Julie MacDonell - https://github.com/juliemacdonell
 * Julien Heller - https://github.com/flux627
 * Przemysław Suliga - https://github.com/suligap
+* Artem Slobodkin - https://github.com/artslob
