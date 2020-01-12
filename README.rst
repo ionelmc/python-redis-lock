@@ -10,11 +10,9 @@ Overview
     * - docs
       - |docs|
     * - tests
-      - | |travis| |requires|
-        | |codecov|
+      - |travis| |requires| |codecov|
     * - package
-      - | |version| |wheel| |supported-versions| |supported-implementations|
-        | |commits-since|
+      - |version| |wheel| |supported-versions| |supported-implementations| |commits-since|
 .. |docs| image:: https://readthedocs.org/projects/python-redis-lock/badge/?style=flat
     :target: https://readthedocs.org/projects/python-redis-lock
     :alt: Documentation Status
