@@ -30,7 +30,7 @@ UNLOCK_SCRIPT = b"""
     else
         redis.call("del", KEYS[2])
         redis.call("lpush", KEYS[2], 1)
-        redis.call("pexpire", KEYS[2], KEYS[3])
+        redis.call("pexpire", KEYS[2], ARGV[2])
         redis.call("del", KEYS[1])
         return 0
     end
@@ -39,12 +39,12 @@ UNLOCK_SCRIPT_HASH = sha1(UNLOCK_SCRIPT).hexdigest()
 
 # Covers both cases when key doesn't exist and doesn't equal to lock's id
 EXTEND_SCRIPT = b"""
-    if redis.call("get", KEYS[1]) ~= ARGV[2] then
+    if redis.call("get", KEYS[1]) ~= ARGV[1] then
         return 1
     elseif redis.call("ttl", KEYS[1]) < 0 then
         return 2
     else
-        redis.call("expire", KEYS[1], ARGV[1])
+        redis.call("expire", KEYS[1], ARGV[2])
         return 0
     end
 """
@@ -53,7 +53,7 @@ EXTEND_SCRIPT_HASH = sha1(EXTEND_SCRIPT).hexdigest()
 RESET_SCRIPT = b"""
     redis.call('del', KEYS[2])
     redis.call('lpush', KEYS[2], 1)
-    redis.call('pexpire', KEYS[2], KEYS[3])
+    redis.call('pexpire', KEYS[2], ARGV[2])
     return redis.call('del', KEYS[1])
 """
 
@@ -198,7 +198,7 @@ class Lock(object):
         """
         Forcibly deletes the lock. Use this with care.
         """
-        _eval_script(self._client, RESET_SCRIPT, self._name, self._signal, self._signal_expire)
+        _eval_script(self._client, RESET_SCRIPT, self._name, self._signal, args=(self.id, self._signal_expire))
 
     @property
     def id(self):
@@ -266,7 +266,7 @@ class Lock(object):
                     "To extend a lock 'expire' must be provided as an "
                     "argument to extend() method or at initialization time."
                 )
-        error = _eval_script(self._client, EXTEND_SCRIPT, self._name, args=(expire, self._id))
+        error = _eval_script(self._client, EXTEND_SCRIPT, self._name, self._signal, args=(self._id, expire))
         if error == 1:
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error == 2:
@@ -350,7 +350,7 @@ class Lock(object):
         if self._lock_renewal_thread is not None:
             self._stop_lock_renewer()
         logger.debug("Releasing %r.", self._name)
-        error = _eval_script(self._client, UNLOCK_SCRIPT, self._name, self._signal, self._signal_expire, args=(self._id,))
+        error = _eval_script(self._client, UNLOCK_SCRIPT, self._name, self._signal, args=(self._id, self._signal_expire))
         if error == 1:
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error:
