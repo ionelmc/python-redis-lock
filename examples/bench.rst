@@ -1,94 +1,77 @@
-========== ======== =========== ======== ========== ====== =====
-Type       Duration Concurrency Sum      Avg        Min    Max
-========== ======== =========== ======== ========== ====== =====
-redis_lock 0.000    1           409886   409886.00  409886 409886
-redis_lock 0.000    2           271239   135619.00  135044 136195
-redis_lock 0.000    3           260480   86826.00   85329  89175
-redis_lock 0.000    4           260845   65211.00   63716  67177
-redis_lock 0.000    5           255557   51111.00   50735  51709
-redis_lock 0.000    6           255940   42656.00   42087  43510
-redis_lock 0.000    12          299112   24926.00   24460  25691
-redis_lock 0.000    24          299643   12485.00   11713  13425
-redis_lock 0.000    48          282539   5886.00    5432   6461
-redis_lock 0.001    1           11522    11522.00   11522  11522
-redis_lock 0.001    2           10829    5414.00    5359   5470
-redis_lock 0.001    3           11812    3937.00    3800   4034
-redis_lock 0.001    4           11203    2800.00    2677   2941
-redis_lock 0.001    5           9970     1994.00    1641   2204
-redis_lock 0.001    6           10234    1705.00    1562   1940
-redis_lock 0.001    12          9060     755.00     680    846
-redis_lock 0.001    24          9003     375.00     268    504
-redis_lock 0.001    48          9736     202.00     69     399
-redis_lock 0.010    1           3540     3540.00    3540   3540
-redis_lock 0.010    2           3808     1904.00    1888   1920
-redis_lock 0.010    3           4152     1384.00    1333   1428
-redis_lock 0.010    4           4152     1038.00    955    1182
-redis_lock 0.010    5           4068     813.00     680    981
-redis_lock 0.010    6           3932     655.00     471    804
-redis_lock 0.010    12          4089     340.00     266    481
-redis_lock 0.010    24          3886     161.00     82     248
-redis_lock 0.010    48          3824     79.00      9      211
-redis_lock 0.050    1           1088     1088.00    1088   1088
-redis_lock 0.050    2           1084     542.00     479    605
-redis_lock 0.050    3           1088     362.00     330    419
-redis_lock 0.050    4           1073     268.00     188    429
-redis_lock 0.050    5           1101     220.00     198    242
-redis_lock 0.050    6           1087     181.00     164    223
-redis_lock 0.050    12          1088     90.00      49     120
-redis_lock 0.050    24          1086     45.00      10     107
-redis_lock 0.050    48          1085     22.00      0      158
-redis_lock 0.100    1           560      560.00     560    560
-redis_lock 0.100    2           573      286.00     279    294
-redis_lock 0.100    3           573      191.00     183    197
-redis_lock 0.100    4           569      142.00     94     213
-redis_lock 0.100    5           571      114.00     85     159
-redis_lock 0.100    6           566      94.00      66     125
-redis_lock 0.100    12          564      47.00      25     96
-redis_lock 0.100    24          565      23.00      4      82
-redis_lock 0.100    48          568      11.00      0      55
-    native 0.000    1           361893   361893.00  361893 361893
-    native 0.000    2           26094    13047.00   7247   18847
-    native 0.000    3           24996    8332.00    6850   9553
-    native 0.000    4           10161    2540.00    1963   3075
-    native 0.000    5           8134     1626.00    951    2679
-    native 0.000    6           9805     1634.00    659    2441
-    native 0.000    12          1300     108.00     0      240
-    native 0.000    24          2511     104.00     0      431
-    native 0.000    48          951      19.00      0      185
-    native 0.001    1           7448     7448.00    7448   7448
-    native 0.001    2           3197     1598.00    795    2402
-    native 0.001    3           3820     1273.00    261    3205
-    native 0.001    4           5255     1313.00    2      5153
-    native 0.001    5           1544     308.00     49     824
-    native 0.001    6           1773     295.00     31     1018
-    native 0.001    12          971      80.00      0      471
-    native 0.001    24          721      30.00      0      538
-    native 0.001    48          227      4.00       0      177
-    native 0.010    1           4030     4030.00    4030   4030
-    native 0.010    2           3950     1975.00    0      3950
-    native 0.010    3           1345     448.00     259    669
-    native 0.010    4           3118     779.00     26     2753
-    native 0.010    5           2698     539.00     0      2248
-    native 0.010    6           3428     571.00     0      3375
-    native 0.010    12          1390     115.00     0      668
-    native 0.010    24          325      13.00      0      93
-    native 0.010    48          231      4.00       0      115
-    native 0.050    1           1094     1094.00    1094   1094
-    native 0.050    2           877      438.00     89     788
-    native 0.050    3           1065     355.00     0      1065
-    native 0.050    4           1092     273.00     0      1091
-    native 0.050    5           811      162.00     0      504
-    native 0.050    6           1088     181.00     0      995
-    native 0.050    12          834      69.00      0      734
-    native 0.050    24          460      19.00      0      214
-    native 0.050    48          99       2.00       0      28
-    native 0.100    1           562      562.00     562    562
-    native 0.100    2           515      257.00     49     466
-    native 0.100    3           561      187.00     0      555
-    native 0.100    4           430      107.00     0      330
-    native 0.100    5           572      114.00     0      522
-    native 0.100    6           244      40.00      0      206
-    native 0.100    12          472      39.00      0      467
-    native 0.100    24          326      13.00      0      306
-    native 0.100    48          269      5.00       0      80
-========== ======== =========== ======== ========== ====== =====
+Benchmarks
+==========
+
+Easy way to run it locally, provides you have a redis server running on default port::
+
+    tox -e py38-dj3-cover -- python examples/bench.py 10
+
+Note that the database will lose all it's data. The benchmark will keep using a lock in a loop till 10 seconds elapse with various settings.
+The concurrency is the number of processes that will try to acquire the same log and the lock duration is an artificial time slept before
+releasing.
+
+My local run with version 3.6.0 of redis-lock:
+
+============== ============= =========== ========= ========== ========== ========== ==========
+Implementation Lock duration Concurrency Acquires: Total      Avg        Min        Max
+============== ============= =========== ========= ========== ========== ========== ==========
+    redis_lock        0.000s           1                26296
+        native        0.000s           1                35605
+    redis_lock        0.010s           1                  931
+        native        0.010s           1                  945
+    redis_lock        0.500s           1                   20
+        native        0.500s           1                   20
+    redis_lock        0.000s           2                35477   17738.50      17661      17816
+        native        0.000s           2                34861   17430.50      13930      20931
+    redis_lock        0.010s           2                  940     470.00        470        470
+        native        0.010s           2                  942     471.00        461        481
+    redis_lock        0.500s           2                   20      10.00         10         10
+        native        0.500s           2                   20      10.00          0         20
+    redis_lock        0.000s           3                46123   15374.33      15291      15437
+        native        0.000s           3                35285   11761.67       7759      14038
+    redis_lock        0.010s           3                  943     314.33        314        315
+        native        0.010s           3                  944     314.67          0        776
+    redis_lock        0.500s           3                   20       6.67          6          7
+        native        0.500s           3                   20       6.67          0         20
+    redis_lock        0.000s           6                42249    7041.50       6863       7170
+        native        0.000s           6                33852    5642.00       4488       6864
+    redis_lock        0.010s           6                  942     157.00        157        157
+        native        0.010s           6                  945     157.50         19        275
+    redis_lock        0.500s           6                   20       3.33          3          4
+        native        0.500s           6                   20       3.33          0         20
+    redis_lock        0.000s          12                42506    3542.17       3206       3819
+        native        0.000s          12                34203    2850.25       1748       4492
+    redis_lock        0.010s          12                  942      78.50         77         79
+        native        0.010s          12                  944      78.67          0        332
+    redis_lock        0.500s          12                   20       1.67          1          2
+        native        0.500s          12                   20       1.67          0         20
+    redis_lock        0.000s          24                42192    1758.00       1603       1893
+        native        0.000s          24                34925    1455.21        681       2402
+    redis_lock        0.010s          24                  944      39.33         39         40
+        native        0.010s          24                  945      39.38          0        256
+    redis_lock        0.500s          24                   20       0.83          0          1
+        native        0.500s          24                   20       0.83          0         20
+    redis_lock        0.000s          48                44867     934.73        768       1172
+        native        0.000s          48                34961     728.35        311       1399
+    redis_lock        0.010s          48                  943      19.65         19         20
+        native        0.010s          48                  942      19.62          0        254
+    redis_lock        0.500s          48                   20       0.42          0          1
+        native        0.500s          48                   20       0.42          0         20
+============== ============= =========== ========= ========== ========== ========== ==========
+
+Key takeaways:
+
+* For a single client (no contention) redis-lock is a little bit slower. In the past it was faster but various fixes added a little bit of
+  overhead in the lock releasing script. Note the ``Total`` column.
+* When two clients are involved things change a lot:
+
+  * The native implementation will loose throughput because the acquiring routine basically does ``while True: sleep(0.1)``.
+    Note the ``Total`` column.
+  * The native implementation favours the first client (it will get most of the acquires because the waiting client simply sleeps a lot).
+    Note the ``Min`` column.
+
+* When either concurrency (number of clients) or duration (amount of time slept while lock is acquired) are high for the native
+  implementation things get very wild:
+
+  * Some clients never get to acquire the lock.
+    Note the ``Min`` column being ``0`` and the ``Max`` column being very high (indicating how many acquires a single client got).
+
