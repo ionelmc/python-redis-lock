@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import os
+
+
+import sphinx_py3doc_enhanced_theme
 
 extensions = [
     'sphinx.ext.autodoc',
@@ -17,7 +19,7 @@ extensions = [
 source_suffix = '.rst'
 master_doc = 'index'
 project = 'redis-lock'
-year = '2013-2019'
+year = '2013-2020'
 author = 'Ionel Cristian Mărieș'
 copyright = '{0}, {1}'.format(year, author)
 version = release = '3.5.0'
@@ -28,7 +30,6 @@ extlinks = {
     'issue': ('https://github.com/ionelmc/python-redis-lock/issues/%s', '#'),
     'pr': ('https://github.com/ionelmc/python-redis-lock/pull/%s', 'PR #'),
 }
-import sphinx_py3doc_enhanced_theme
 html_theme = "sphinx_py3doc_enhanced_theme"
 html_theme_path = [sphinx_py3doc_enhanced_theme.get_html_theme_path()]
 html_theme_options = {

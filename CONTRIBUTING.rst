@@ -41,7 +41,7 @@ To set up `python-redis-lock` for local development:
    (look for the "Fork" button).
 2. Clone your fork locally::
 
-    git clone git@github.com:ionelmc/python-redis-lock.git
+    git clone git@github.com:YOURGITHUBNAME/python-redis-lock.git
 
 3. Create a branch for local development::
 

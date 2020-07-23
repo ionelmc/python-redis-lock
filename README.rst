@@ -10,9 +10,11 @@ Overview
     * - docs
       - |docs|
     * - tests
-      - |travis| |requires| |codecov| |coveralls|
+      - | |travis| |requires|
+        | |coveralls| |codecov|
     * - package
-      - |version| |wheel| |supported-versions| |supported-implementations| |commits-since|
+      - | |version| |wheel| |supported-versions| |supported-implementations|
+        | |commits-since|
 .. |docs| image:: https://readthedocs.org/projects/python-redis-lock/badge/?style=flat
     :target: https://readthedocs.org/projects/python-redis-lock
     :alt: Documentation Status
@@ -29,7 +31,7 @@ Overview
     :alt: Coverage Status
     :target: https://coveralls.io/r/ionelmc/python-redis-lock
 
-.. |codecov| image:: https://codecov.io/github/ionelmc/python-redis-lock/coverage.svg?branch=master
+.. |codecov| image:: https://codecov.io/gh/ionelmc/python-redis-lock/branch/master/graphs/badge.svg?branch=master
     :alt: Coverage Status
     :target: https://codecov.io/github/ionelmc/python-redis-lock
 
