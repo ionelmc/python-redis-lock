@@ -72,6 +72,10 @@ Because we don't want to require users to share the lock instance across process
 
 .. code-block:: python
 
+    from redis import Redis
+    conn = Redis()
+
+    import redis_lock
     lock = redis_lock.Lock(conn, "name-of-the-lock")
     if lock.acquire(blocking=False):
         print("Got the lock.")
