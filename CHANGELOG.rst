@@ -2,6 +2,22 @@
 Changelog
 =========
 
+3.6.0 (2020-07-23)
+------------------
+
+* Improved ``timeout``/``expire`` validation so that:
+
+  - ``timeout`` and ``expire are converted to ``None`` if they are falsy. Previously only ``None`` disabled these options, other falsy
+    values created buggy situations.
+  - Using ``timeout`` greater than ``expire`` is now allowed, if ``auto_renewal`` is set to ``True``. Previously a ``TimeoutTooLarge`` error
+    was raised.
+    See `#74 <https://github.com/ionelmc/python-redis-lock/issues/74>`_.
+  - Negative ``timeout`` or ``expire`` are disallowed. Previously such values were allowed, and created buggy situations.
+    See `#73 <https://github.com/ionelmc/python-redis-lock/issues/73>`_.
+* Updated benchmark and examples.
+* Removed the custom script caching code. Now the ``register_script`` method from the redis client is used.
+  This will fix possible issue with redis clusters in theory, as the redis client has some specific handling for that.
+
 3.5.0 (2020-01-13)
 ------------------
 
