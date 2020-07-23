@@ -23,8 +23,28 @@ else:
     binary_type = str
 
 
+class Script(object):
+    def __init__(self, name, code):
+        self.name = name
+        self.code = code
+        self.digest = sha1(code).hexdigest()
+
+    def eval(self, redis, *keys, **kwargs):
+        """Tries to call ``EVALSHA`` with the `hash` and then, if it fails, calls
+        regular ``EVAL`` with the `script`.
+        """
+        args = kwargs.pop('args', ())
+        if kwargs:
+            raise TypeError("Unexpected keyword arguments %s" % kwargs.keys())
+        try:
+            return redis.evalsha(self.digest, len(keys), *keys + args)
+        except NoScriptError:
+            logger.info("%s not cached.", self.name)
+            return redis.eval(self.code, len(keys), *keys + args)
+
+
 # Check if the id match. If not, return an error code.
-UNLOCK_SCRIPT = b"""
+UNLOCK_SCRIPT = Script("UNLOCK_SCRIPT", b"""
     if redis.call("get", KEYS[1]) ~= ARGV[1] then
         return 1
     else
@@ -34,11 +54,10 @@ UNLOCK_SCRIPT = b"""
         redis.call("del", KEYS[1])
         return 0
     end
-"""
-UNLOCK_SCRIPT_HASH = sha1(UNLOCK_SCRIPT).hexdigest()
+""")
 
 # Covers both cases when key doesn't exist and doesn't equal to lock's id
-EXTEND_SCRIPT = b"""
+EXTEND_SCRIPT = Script("EXTEND_SCRIPT", b"""
     if redis.call("get", KEYS[1]) ~= ARGV[1] then
         return 1
     elseif redis.call("ttl", KEYS[1]) < 0 then
@@ -47,19 +66,16 @@ EXTEND_SCRIPT = b"""
         redis.call("expire", KEYS[1], ARGV[2])
         return 0
     end
-"""
-EXTEND_SCRIPT_HASH = sha1(EXTEND_SCRIPT).hexdigest()
+""")
 
-RESET_SCRIPT = b"""
+RESET_SCRIPT = Script("RESET_SCRIPT", b"""
     redis.call('del', KEYS[2])
     redis.call('lpush', KEYS[2], 1)
     redis.call('pexpire', KEYS[2], ARGV[2])
     return redis.call('del', KEYS[1])
-"""
+""")
 
-RESET_SCRIPT_HASH = sha1(RESET_SCRIPT).hexdigest()
-
-RESET_ALL_SCRIPT = b"""
+RESET_ALL_SCRIPT = Script("RESET_ALL_SCRIPT", b"""
     local locks = redis.call('keys', 'lock:*')
     local signal
     for _, lock in pairs(locks) do
@@ -70,9 +86,7 @@ RESET_ALL_SCRIPT = b"""
         redis.call('del', lock)
     end
     return #locks
-"""
-
-RESET_ALL_SCRIPT_HASH = sha1(RESET_ALL_SCRIPT).hexdigest()
+""")
 
 
 class AlreadyAcquired(RuntimeError):
@@ -101,32 +115,6 @@ class TimeoutTooLarge(RuntimeError):
 
 class NotExpirable(RuntimeError):
     pass
-
-
-((UNLOCK_SCRIPT, _, _,  # noqa
-  EXTEND_SCRIPT, _, _,
-  RESET_SCRIPT, _, _,
-  RESET_ALL_SCRIPT, _, _),
- SCRIPTS) = zip(*enumerate([
-    UNLOCK_SCRIPT_HASH, UNLOCK_SCRIPT, 'UNLOCK_SCRIPT',
-    EXTEND_SCRIPT_HASH, EXTEND_SCRIPT, 'EXTEND_SCRIPT',
-    RESET_SCRIPT_HASH, RESET_SCRIPT, 'RESET_SCRIPT',
-    RESET_ALL_SCRIPT_HASH, RESET_ALL_SCRIPT, 'RESET_ALL_SCRIPT'
-]))
-
-
-def _eval_script(redis, script_id, *keys, **kwargs):
-    """Tries to call ``EVALSHA`` with the `hash` and then, if it fails, calls
-    regular ``EVAL`` with the `script`.
-    """
-    args = kwargs.pop('args', ())
-    if kwargs:
-        raise TypeError("Unexpected keyword arguments %s" % kwargs.keys())
-    try:
-        return redis.evalsha(SCRIPTS[script_id], len(keys), *keys + args)
-    except NoScriptError:
-        logger.info("%s not cached.", SCRIPTS[script_id + 2])
-        return redis.eval(SCRIPTS[script_id + 1], len(keys), *keys + args)
 
 
 class Lock(object):
@@ -191,9 +179,9 @@ class Lock(object):
             self._id = id
         else:
             raise TypeError("Incorrect type for `id`. Must be bytes/str not %s." % type(id))
-        self._name = 'lock:'+name
-        self._signal = 'lock-signal:'+name
-        self._lock_renewal_interval = (float(expire)*2/3
+        self._name = 'lock:' + name
+        self._signal = 'lock-signal:' + name
+        self._lock_renewal_interval = (float(expire) * 2 / 3
                                        if auto_renewal
                                        else None)
         self._lock_renewal_thread = None
@@ -206,7 +194,7 @@ class Lock(object):
         """
         Forcibly deletes the lock. Use this with care.
         """
-        _eval_script(self._client, RESET_SCRIPT, self._name, self._signal, args=(self.id, self._signal_expire))
+        RESET_SCRIPT.eval(self._client, self._name, self._signal, args=(self.id, self._signal_expire))
 
     @property
     def id(self):
@@ -279,7 +267,7 @@ class Lock(object):
                 "argument to extend() method or at initialization time."
             )
 
-        error = _eval_script(self._client, EXTEND_SCRIPT, self._name, self._signal, args=(self._id, expire))
+        error = EXTEND_SCRIPT.eval(self._client, self._name, self._signal, args=(self._id, expire))
         if error == 1:
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error == 2:
@@ -362,7 +350,7 @@ class Lock(object):
         if self._lock_renewal_thread is not None:
             self._stop_lock_renewer()
         logger.debug("Releasing %r.", self._name)
-        error = _eval_script(self._client, UNLOCK_SCRIPT, self._name, self._signal, args=(self._id, self._signal_expire))
+        error = UNLOCK_SCRIPT.eval(self._client, self._name, self._signal, args=(self._id, self._signal_expire))
         if error == 1:
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error:
@@ -382,4 +370,4 @@ def reset_all(redis_client):
     """
     Forcibly deletes all locks if its remains (like a crash reason). Use this with care.
     """
-    _eval_script(redis_client, RESET_ALL_SCRIPT)
+    RESET_ALL_SCRIPT.eval(redis_client)
