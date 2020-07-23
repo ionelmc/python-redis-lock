@@ -1,4 +1,10 @@
+import os
 import sys
+import time
+import logging
+
+import redis
+import redis_lock
 
 try:
     import tty, termios
@@ -32,33 +38,30 @@ else:
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
-import os
-import sys
-import time
-import logging
+
 logging.basicConfig(level="DEBUG", format="%(asctime)s | %(process)6s | %(message)s")
 
-c = StrictRedis()
+c = redis.StrictRedis()
 pid = os.getpid()
-def run():
-    with Lock(c, sys.argv[1], expire=5):
-        time.sleep(0.05)
-        #logging.debug("GOT LOCK. WAITING ...")
-        #time.sleep(1)
-        #for i in range(5):
-        #    time.sleep(1)
-        #    print i,
-        #print
-        #logging.debug("DONE.")
+lock = redis_lock.Lock(c, sys.argv[1], expire=5)
 
-    #raw_input("Exit?")
+
+def run():
+    with lock:
+        logging.debug("GOT LOCK. WAITING ...")
+        time.sleep(0.05)
+        logging.debug("DONE.")
+
+    # raw_input("Exit?")
     getch()
 
+
 import sched
+
 s = sched.scheduler(time.time, time.sleep)
 now = int(time.time()) / 10
-t = (now+1) * 10
+t = (now + 1) * 10
 logging.debug("Running in %s seconds ...", t - time.time())
 s.enterabs(t, 0, run, ())
 s.run()
-#run()
+# run()

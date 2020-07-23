@@ -2,20 +2,22 @@
 import sys
 import subprocess
 
+subprocess.check_call("tox -e py38-dj3-nocov --notest".split())
+
 left_commands = [
-    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
-    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
-    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
-    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
-    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
-    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
-    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
-    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
-    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
-    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
-    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
-    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
-    ".ve/bin/python -u src/redis_lock.py %s" % sys.argv[1],
+    ".tox/py38-dj3-nocov/bin/python examples/plain.py %s" % sys.argv[1],
+    ".tox/py38-dj3-nocov/bin/python examples/plain.py %s" % sys.argv[1],
+    ".tox/py38-dj3-nocov/bin/python examples/plain.py %s" % sys.argv[1],
+    ".tox/py38-dj3-nocov/bin/python examples/plain.py %s" % sys.argv[1],
+    ".tox/py38-dj3-nocov/bin/python examples/plain.py %s" % sys.argv[1],
+    ".tox/py38-dj3-nocov/bin/python examples/plain.py %s" % sys.argv[1],
+    ".tox/py38-dj3-nocov/bin/python examples/plain.py %s" % sys.argv[1],
+    ".tox/py38-dj3-nocov/bin/python examples/plain.py %s" % sys.argv[1],
+    ".tox/py38-dj3-nocov/bin/python examples/plain.py %s" % sys.argv[1],
+    ".tox/py38-dj3-nocov/bin/python examples/plain.py %s" % sys.argv[1],
+    ".tox/py38-dj3-nocov/bin/python examples/plain.py %s" % sys.argv[1],
+    ".tox/py38-dj3-nocov/bin/python examples/plain.py %s" % sys.argv[1],
+    ".tox/py38-dj3-nocov/bin/python examples/plain.py %s" % sys.argv[1],
 ]
 right_commands = left_commands
 session = ''
@@ -41,5 +43,5 @@ args = [
     'new-session',
     session,
 ]
-print 'Running ', args
+print('Running ', args)
 subprocess.call(args)

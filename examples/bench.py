@@ -1,24 +1,30 @@
 import logging
-logging.basicConfig(level="WARN", format="%(message)s")
-
 import os
+import signal
 import sys
 import time
-import signal
 from futures import ProcessPoolExecutor
-from sched import scheduler
 from redis import StrictRedis
+from sched import scheduler
+
 from redis_lock import Lock
+
+logging.basicConfig(level="WARN", format="%(message)s")
+
 
 class Exit(Exception):
     pass
 
+
 def bail(n, f):
     raise Exit()
 
+
 signal.signal(signal.SIGALRM, bail)
 
-def test((t, duration, type_)):
+
+def test(arg):
+    t, duration, type_ = arg
     conn = StrictRedis()
     conn.flushdb()
     ret = []
@@ -46,6 +52,8 @@ def test((t, duration, type_)):
     sched.enterabs(t, 0, run, ())
     sched.run()
     return ret[0]
+
+
 logging.critical("========== ======== =========== ======== ========== ===== =====")
 logging.critical("Type       Duration Concurrency Sum      Avg        Min   Max")
 logging.critical("========== ======== =========== ======== ========== ===== =====")
@@ -80,6 +88,6 @@ for type_ in (
 
             logging.critical(
                 "%10s %-8.3f %-11s %-8s %-10.2f %-5s %-5s",
-                type_, duration, concurrency, sum(ret), sum(ret)/len(ret), min(ret), max(ret)
+                type_, duration, concurrency, sum(ret), sum(ret) / len(ret), min(ret), max(ret)
             )
 logging.critical("========== ======== =========== ======== ========== ===== =====")
