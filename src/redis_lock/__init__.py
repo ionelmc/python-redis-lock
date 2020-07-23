@@ -170,7 +170,15 @@ class Lock(object):
             raise ValueError("Expire may not be None when auto_renewal is set")
 
         self._client = redis_client
-        self._expire = expire if expire is None else int(expire)
+
+        if expire:
+            expire = int(expire)
+            if expire < 0:
+                raise ValueError("A negative expire is not acceptable.")
+        else:
+            expire = None
+        self._expire = expire
+
         self._signal_expire = signal_expire
         if id is None:
             self._id = b64encode(urandom(18)).decode('ascii')
@@ -225,12 +233,13 @@ class Lock(object):
         if not blocking and timeout is not None:
             raise TimeoutNotUsable("Timeout cannot be used if blocking=False")
 
-        timeout = timeout if timeout is None else int(timeout)
-        if timeout is not None and timeout <= 0:
-            raise InvalidTimeout("Timeout (%d) cannot be less than or equal to 0" % timeout)
+        if timeout:
+            timeout = int(timeout)
+            if timeout < 0:
+                raise InvalidTimeout("Timeout (%d) cannot be less than or equal to 0" % timeout)
 
-        if timeout and self._expire and timeout > self._expire:
-            raise TimeoutTooLarge("Timeout (%d) cannot be greater than expire (%d)" % (timeout, self._expire))
+            if self._expire and not self._lock_renewal_interval and timeout > self._expire:
+                raise TimeoutTooLarge("Timeout (%d) cannot be greater than expire (%d)" % (timeout, self._expire))
 
         busy = True
         blpop_timeout = timeout or self._expire or 0
@@ -258,20 +267,23 @@ class Lock(object):
             New expiration time. If ``None`` - `expire` provided during
             lock initialization will be taken.
         """
-        if expire is None:
-            if self._expire is not None:
-                expire = self._expire
-            else:
-                raise TypeError(
-                    "To extend a lock 'expire' must be provided as an "
-                    "argument to extend() method or at initialization time."
-                )
+        if expire:
+            expire = int(expire)
+            if expire < 0:
+                raise ValueError("A negative expire is not acceptable.")
+        elif self._expire is not None:
+            expire = self._expire
+        else:
+            raise TypeError(
+                "To extend a lock 'expire' must be provided as an "
+                "argument to extend() method or at initialization time."
+            )
+
         error = _eval_script(self._client, EXTEND_SCRIPT, self._name, self._signal, args=(self._id, expire))
         if error == 1:
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error == 2:
-            raise NotExpirable("Lock %s has no assigned expiration time" %
-                               self._name)
+            raise NotExpirable("Lock %s has no assigned expiration time" % self._name)
         elif error:
             raise RuntimeError("Unsupported error code %s from EXTEND script" % error)
 

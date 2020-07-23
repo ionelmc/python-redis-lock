@@ -124,6 +124,13 @@ def test_timeout(conn):
         assert lock.acquire(timeout=1) is False
 
 
+@pytest.mark.parametrize("timeout", [0, "0", "123"])
+def test_timeout_int_conversion(conn, timeout):
+    lock = Lock(conn, "foobar")
+    lock.acquire(blocking=True, timeout=timeout)
+    lock.release()
+
+
 def test_timeout_expire(conn):
     lock1 = Lock(conn, "foobar", expire=1)
     lock1.acquire()
@@ -158,18 +165,36 @@ def test_not_usable_timeout(conn):
 
 def test_expire_less_than_timeout(conn):
     lock = Lock(conn, "foobar", expire=1)
-    with pytest.raises(TimeoutTooLarge):
-        lock.acquire(blocking=True, timeout=2)
+    pytest.raises(TimeoutTooLarge, lock.acquire, blocking=True, timeout=2)
+
+    lock = Lock(conn, "foobar", expire=1, auto_renewal=True)
+    lock.acquire(blocking=True, timeout=2)
+    lock.release()
 
 
 def test_invalid_timeout(conn):
     lock = Lock(conn, "foobar")
-    with pytest.raises(InvalidTimeout):
-        lock.acquire(blocking=True, timeout=0)
+    pytest.raises(InvalidTimeout, lock.acquire, blocking=True, timeout=-123)
 
     lock = Lock(conn, "foobar")
-    with pytest.raises(InvalidTimeout):
-        lock.acquire(blocking=True, timeout=-1)
+    pytest.raises(InvalidTimeout, lock.acquire, blocking=True, timeout=-1)
+    pytest.raises(ValueError, lock.acquire, blocking=True, timeout="foobar")
+
+
+def test_expire_int_conversion():
+    conn = object()
+
+    lock = Lock(conn, name='foobar', strict=False, expire=1)
+    assert lock._expire == 1
+
+    lock = Lock(conn, name='foobar', strict=False, expire=0)
+    assert lock._expire is None
+
+    lock = Lock(conn, name='foobar', strict=False, expire="1")
+    assert lock._expire == 1
+
+    lock = Lock(conn, name='foobar', strict=False, expire="123")
+    assert lock._expire == 123
 
 
 def test_expire(conn):
@@ -578,6 +603,17 @@ def test_given_id(conn):
 def test_strict_check():
     pytest.raises(ValueError, Lock, object(), name='foobar')
     Lock(object(), name='foobar', strict=False)
+
+
+def test_borken_expires():
+    conn = object()
+    pytest.raises(ValueError, Lock, redis_client=conn, name='foobar', expire=-1)
+    pytest.raises(ValueError, Lock, redis_client=conn, name='foobar', expire=-123)
+    pytest.raises(ValueError, Lock, redis_client=conn, name='foobar', expire="-1")
+    lock = Lock(redis_client=conn, name='foobar', strict=False)
+    pytest.raises(ValueError, lock.extend, expire=-1)
+    pytest.raises(ValueError, lock.extend, expire=-123)
+    pytest.raises(ValueError, lock.extend, expire="-1")
 
 
 def test_locked_method(conn):
