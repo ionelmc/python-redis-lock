@@ -99,7 +99,6 @@ def test_simple(redis_server):
                 'Getting %r ...' % name,
                 'Got lock for %r.' % name,
                 'Releasing %r.' % name,
-                'UNLOCK_SCRIPT not cached.',
                 'DIED.',
             )
 
@@ -208,7 +207,6 @@ def test_expire(conn):
                 'Getting %r ...' % name,
                 'Got lock for %r.' % name,
                 'Releasing %r.' % name,
-                'UNLOCK_SCRIPT not cached.',
                 'DIED.',
             )
     lock = Lock(conn, "foobar")
@@ -323,7 +321,6 @@ def test_no_overlap(redis_server):
             wait_for_strings(proc.read, 10 * TIMEOUT, 'Getting %r ...' % name)
             wait_for_strings(proc.read, 10 * TIMEOUT, 'Got lock for %r.' % name)
             wait_for_strings(proc.read, 10 * TIMEOUT, 'Releasing %r.' % name)
-            wait_for_strings(proc.read, 10 * TIMEOUT, 'UNLOCK_SCRIPT not cached.')
             wait_for_strings(proc.read, 10 * TIMEOUT, 'DIED.')
 
             class Event(object):
