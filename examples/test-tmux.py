@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-import sys
 import subprocess
+import sys
 
 subprocess.check_call("tox -e py38-dj3-nocov --notest".split())
 

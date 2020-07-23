@@ -1,13 +1,16 @@
+import logging
 import os
+import sched
 import sys
 import time
-import logging
 
 import redis
+
 import redis_lock
 
 try:
-    import tty, termios
+    import termios
+    import tty
 except ImportError:
     # Probably Windows.
     try:
@@ -50,18 +53,15 @@ def run():
     with lock:
         logging.debug("GOT LOCK. WAITING ...")
         time.sleep(0.05)
-        logging.debug("DONE.")
+        logging.debug("DONE. Press any key to exit.")
 
-    # raw_input("Exit?")
     getch()
 
 
-import sched
-
-s = sched.scheduler(time.time, time.sleep)
-now = int(time.time()) / 10
-t = (now + 1) * 10
-logging.debug("Running in %s seconds ...", t - time.time())
-s.enterabs(t, 0, run, ())
-s.run()
-# run()
+if __name__ == "__main__":
+    s = sched.scheduler(time.time, time.sleep)
+    now = int(time.time()) / 10
+    t = (now + 1) * 10
+    logging.debug("Running in %s seconds ...", t - time.time())
+    s.enterabs(t, 0, run, ())
+    s.run()

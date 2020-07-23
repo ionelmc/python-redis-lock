@@ -1,11 +1,11 @@
 import logging
-import os
 import signal
 import sys
 import time
+from sched import scheduler
+
 from futures import ProcessPoolExecutor
 from redis import StrictRedis
-from sched import scheduler
 
 from redis_lock import Lock
 
@@ -43,8 +43,8 @@ def test(arg):
                     with conn.lock("test-lock", timeout=5):
                         iterations += 1
                         time.sleep(duration)
-        except:
-            logging.info("Got %r. Returning ...", sys.exc_value)
+        except Exception as exc:
+            logging.info("Got %r. Returning ...", exc)
         ret.append(iterations)
 
     sched = scheduler(time.time, time.sleep)
