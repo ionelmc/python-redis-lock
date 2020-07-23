@@ -2,12 +2,10 @@ import sys
 import threading
 import weakref
 from base64 import b64encode
-from hashlib import sha1
 from logging import getLogger
 from os import urandom
 
 from redis import StrictRedis
-from redis.exceptions import NoScriptError
 
 __version__ = '3.5.0'
 
@@ -23,28 +21,8 @@ else:
     binary_type = str
 
 
-class Script(object):
-    def __init__(self, name, code):
-        self.name = name
-        self.code = code
-        self.digest = sha1(code).hexdigest()
-
-    def eval(self, redis, *keys, **kwargs):
-        """Tries to call ``EVALSHA`` with the `hash` and then, if it fails, calls
-        regular ``EVAL`` with the `script`.
-        """
-        args = kwargs.pop('args', ())
-        if kwargs:
-            raise TypeError("Unexpected keyword arguments %s" % kwargs.keys())
-        try:
-            return redis.evalsha(self.digest, len(keys), *keys + args)
-        except NoScriptError:
-            logger.info("%s not cached.", self.name)
-            return redis.eval(self.code, len(keys), *keys + args)
-
-
 # Check if the id match. If not, return an error code.
-UNLOCK_SCRIPT = Script("UNLOCK_SCRIPT", b"""
+UNLOCK_SCRIPT = b"""
     if redis.call("get", KEYS[1]) ~= ARGV[1] then
         return 1
     else
@@ -54,10 +32,10 @@ UNLOCK_SCRIPT = Script("UNLOCK_SCRIPT", b"""
         redis.call("del", KEYS[1])
         return 0
     end
-""")
+"""
 
 # Covers both cases when key doesn't exist and doesn't equal to lock's id
-EXTEND_SCRIPT = Script("EXTEND_SCRIPT", b"""
+EXTEND_SCRIPT = b"""
     if redis.call("get", KEYS[1]) ~= ARGV[1] then
         return 1
     elseif redis.call("ttl", KEYS[1]) < 0 then
@@ -66,16 +44,16 @@ EXTEND_SCRIPT = Script("EXTEND_SCRIPT", b"""
         redis.call("expire", KEYS[1], ARGV[2])
         return 0
     end
-""")
+"""
 
-RESET_SCRIPT = Script("RESET_SCRIPT", b"""
+RESET_SCRIPT = b"""
     redis.call('del', KEYS[2])
     redis.call('lpush', KEYS[2], 1)
     redis.call('pexpire', KEYS[2], ARGV[2])
     return redis.call('del', KEYS[1])
-""")
+"""
 
-RESET_ALL_SCRIPT = Script("RESET_ALL_SCRIPT", b"""
+RESET_ALL_SCRIPT = b"""
     local locks = redis.call('keys', 'lock:*')
     local signal
     for _, lock in pairs(locks) do
@@ -86,7 +64,7 @@ RESET_ALL_SCRIPT = Script("RESET_ALL_SCRIPT", b"""
         redis.call('del', lock)
     end
     return #locks
-""")
+"""
 
 
 class AlreadyAcquired(RuntimeError):
@@ -121,6 +99,10 @@ class Lock(object):
     """
     A Lock context manager implemented via redis SETNX/BLPOP.
     """
+    unlock_script = None
+    extend_script = None
+    reset_script = None
+    reset_all_script = None
 
     def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, strict=True, signal_expire=1000):
         """
@@ -186,6 +168,18 @@ class Lock(object):
                                        else None)
         self._lock_renewal_thread = None
 
+        self.register_scripts(redis_client)
+
+    @classmethod
+    def register_scripts(cls, redis_client):
+        global reset_all_script
+        if reset_all_script is None:
+            reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
+            cls.unlock_script = redis_client.register_script(UNLOCK_SCRIPT)
+            cls.extend_script = redis_client.register_script(EXTEND_SCRIPT)
+            cls.reset_script = redis_client.register_script(RESET_SCRIPT)
+            cls.reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
+
     @property
     def _held(self):
         return self.id == self.get_owner_id()
@@ -194,7 +188,7 @@ class Lock(object):
         """
         Forcibly deletes the lock. Use this with care.
         """
-        RESET_SCRIPT.eval(self._client, self._name, self._signal, args=(self.id, self._signal_expire))
+        self.reset_script(client=self._client, keys=(self._name, self._signal), args=(self.id, self._signal_expire))
 
     @property
     def id(self):
@@ -267,7 +261,7 @@ class Lock(object):
                 "argument to extend() method or at initialization time."
             )
 
-        error = EXTEND_SCRIPT.eval(self._client, self._name, self._signal, args=(self._id, expire))
+        error = self.extend_script(client=self._client, keys=(self._name, self._signal), args=(self._id, expire))
         if error == 1:
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error == 2:
@@ -350,7 +344,7 @@ class Lock(object):
         if self._lock_renewal_thread is not None:
             self._stop_lock_renewer()
         logger.debug("Releasing %r.", self._name)
-        error = UNLOCK_SCRIPT.eval(self._client, self._name, self._signal, args=(self._id, self._signal_expire))
+        error = self.unlock_script(client=self._client, keys=(self._name, self._signal), args=(self._id, self._signal_expire))
         if error == 1:
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error:
@@ -366,8 +360,16 @@ class Lock(object):
         return self._client.exists(self._name) == 1
 
 
+reset_all_script = None
+
+
 def reset_all(redis_client):
     """
     Forcibly deletes all locks if its remains (like a crash reason). Use this with care.
+
+    :param redis_client:
+        An instance of :class:`~StrictRedis`.
     """
-    RESET_ALL_SCRIPT.eval(redis_client)
+    Lock.register_scripts(redis_client)
+
+    reset_all_script(client=redis_client)  # noqa
