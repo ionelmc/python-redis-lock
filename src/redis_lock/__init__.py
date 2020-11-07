@@ -9,7 +9,19 @@ from redis import StrictRedis
 
 __version__ = '3.6.0'
 
-logger = getLogger(__name__)
+loggers = {
+    k: getLogger(".".join((__name__, k)))
+    for k in [
+        "acquire",
+        "refresh.thread.start",
+        "refresh.thread.stop",
+        "refresh.thread.exit",
+        "refresh.start",
+        "refresh.shutdown",
+        "refresh.exit",
+        "release",
+    ]
+}
 
 PY3 = sys.version_info[0] == 3
 
@@ -207,6 +219,8 @@ class Lock(object):
         :param timeout:
             An integer value specifying the maximum number of seconds to block.
         """
+        logger = loggers["acquire"]
+
         logger.debug("Getting %r ...", self._name)
 
         if self._held:
@@ -234,10 +248,10 @@ class Lock(object):
                 elif blocking:
                     timed_out = not self._client.blpop(self._signal, blpop_timeout) and timeout
                 else:
-                    logger.debug("Failed to get %r.", self._name)
+                    logger.warning("Failed to get %r.", self._name)
                     return False
 
-        logger.debug("Got lock for %r.", self._name)
+        logger.info("Got lock for %r.", self._name)
         if self._lock_renewal_interval is not None:
             self._start_lock_renewer()
         return True
@@ -275,17 +289,17 @@ class Lock(object):
         Renew the lock key in redis every `interval` seconds for as long
         as `self._lock_renewal_thread.should_exit` is False.
         """
-        log = getLogger("%s.lock_refresher" % __name__)
         while not stop.wait(timeout=interval):
-            log.debug("Refreshing lock")
+            loggers["refresh.thread.start"].debug("Refreshing lock")
             lock = lockref()
             if lock is None:
-                log.debug("The lock no longer exists, "
-                          "stopping lock refreshing")
+                loggers["refresh.thread.stop"].debug(
+                    "The lock no longer exists, stopping lock refreshing"
+                )
                 break
             lock.extend(expire=lock._expire)
             del lock
-        log.debug("Exit requested, stopping lock refreshing")
+        loggers["refresh.thread.exit"].debug("Exit requested, stopping lock refreshing")
 
     def _start_lock_renewer(self):
         """
@@ -294,7 +308,7 @@ class Lock(object):
         if self._lock_renewal_thread is not None:
             raise AlreadyStarted("Lock refresh thread already started")
 
-        logger.debug(
+        loggers["refresh.start"].debug(
             "Starting thread to refresh lock every %s seconds",
             self._lock_renewal_interval
         )
@@ -317,11 +331,11 @@ class Lock(object):
         """
         if self._lock_renewal_thread is None or not self._lock_renewal_thread.is_alive():
             return
-        logger.debug("Signalling the lock refresher to stop")
+        loggers["refresh.shutdown"].debug("Signalling the lock refresher to stop")
         self._lock_renewal_stop.set()
         self._lock_renewal_thread.join()
         self._lock_renewal_thread = None
-        logger.debug("Lock refresher has stopped")
+        loggers["refresh.exit"].debug("Lock refresher has stopped")
 
     def __enter__(self):
         acquired = self.acquire(blocking=True)
@@ -343,7 +357,7 @@ class Lock(object):
         """
         if self._lock_renewal_thread is not None:
             self._stop_lock_renewer()
-        logger.debug("Releasing %r.", self._name)
+        loggers["release"].debug("Releasing %r.", self._name)
         error = self.unlock_script(client=self._client, keys=(self._name, self._signal), args=(self._id, self._signal_expire))
         if error == 1:
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)

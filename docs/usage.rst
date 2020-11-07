@@ -62,3 +62,8 @@ To check if lock with same name is already locked
 (it can be this or another lock with identical names)::
 
     is_locked = Lock(conn, "lock-name").locked()
+
+You can control the log output by modifying various loggers::
+
+    logging.getLogger("redis_lock.thread").disabled = True
+    logging.getLogger("redis_lock").disable(logging.DEBUG)
