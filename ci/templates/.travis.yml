@@ -1,5 +1,6 @@
 language: python
 dist: xenial
+virt: lxd
 cache: false
 env:
   global:
@@ -18,7 +19,6 @@ matrix:
     - env:
         - TOXENV={{ env }}{% if 'cover' in env %},codecov,coveralls{% endif %}
 {%- if env.startswith('pypy3') %}{{ '' }}
-        - TOXPYTHON=pypy3
       python: 'pypy3'
 {%- elif env.startswith('pypy') %}{{ '' }}
       python: 'pypy'
