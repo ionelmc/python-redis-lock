@@ -29,7 +29,7 @@ Overview
 
 .. |coveralls| image:: https://coveralls.io/repos/ionelmc/python-redis-lock/badge.svg?branch=master&service=github
     :alt: Coverage Status
-    :target: https://coveralls.io/r/ionelmc/python-redis-lock
+    :target: https://coveralls.io/github/ionelmc/python-redis-lock
 
 .. |codecov| image:: https://codecov.io/gh/ionelmc/python-redis-lock/branch/master/graphs/badge.svg?branch=master
     :alt: Coverage Status
@@ -63,7 +63,7 @@ Lock context manager implemented via redis SETNX/BLPOP.
 
 * Free software: BSD 2-Clause License
 
-Interface targeted to be exactly like `threading.Lock <http://docs.python.org/2/library/threading.html#threading.Lock>`_.
+Interface targeted to be exactly like `threading.Lock <https://docs.python.org/2/library/threading.html#threading.Lock>`_.
 
 Usage
 =====
@@ -120,7 +120,7 @@ Avoid dogpile effect in django
 The dogpile is also known as the thundering herd effect or cache stampede. Here's a pattern to avoid the problem
 without serving stale data. The work will be performed a single time and every client will wait for the fresh data.
 
-To use this you will need `django-redis <https://github.com/niwibe/django-redis>`_, however, ``python-redis-lock``
+To use this you will need `django-redis <https://github.com/jazzband/django-redis>`_, however, ``python-redis-lock``
 provides you a cache backend that has a cache method for your convenience. Just install ``python-redis-lock`` like
 this:
 
@@ -145,7 +145,7 @@ Now put something like this in your settings:
 .. note::
     If using a `django-redis` < `3.8.x`, you'll probably need `redis_cache`
     which has been deprecated in favor to `django_redis`. The `redis_cache`
-    module is removed in `django-redis` versions > `3.9.x`. See `django-redis notes <http://niwinz.github.io/django-redis/latest/#_configure_as_cache_backend>`_.
+    module is removed in `django-redis` versions > `3.9.x`. See `django-redis notes <https://github.com/jazzband/django-redis#configure-as-cache-backend>`_.
 
 
 This backend just adds a convenient ``.lock(name, expire=None)`` function to django-redis's cache backend.
@@ -215,13 +215,13 @@ Implementation
 
 This is how it works:
 
-.. image:: https://raw.github.com/ionelmc/python-redis-lock/master/docs/redis-lock%20diagram%20(v3.0).png
+.. image:: https://raw.githubusercontent.com/ionelmc/python-redis-lock/master/docs/redis-lock%20diagram%20(v3.0).png
     :alt: python-redis-lock flow diagram
 
 Documentation
 =============
 
-https://python-redis-lock.readthedocs.org/
+https://python-redis-lock.readthedocs.io/en/latest/
 
 Development
 ===========
