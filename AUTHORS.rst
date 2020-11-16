@@ -15,3 +15,4 @@ Authors
 * Julien Heller - https://github.com/flux627
 * Przemysław Suliga - https://github.com/suligap
 * Artem Slobodkin - https://github.com/artslob
+* Salomon Smeke Cohen - https://github.com/SalomonSmeke
