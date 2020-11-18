@@ -2,6 +2,25 @@
 Changelog
 =========
 
+3.7.0 (2020-11-19)
+------------------
+
+* Made logger names more specific. Now can have granular filtering on these new logger names:
+
+  * ``redis_lock.acquire`` (emits `DEBUG` messages)
+  * ``redis_lock.acquire`` (emits `WARN` messages)
+  * ``redis_lock.acquire`` (emits `INFO` messages)
+  * ``redis_lock.refresh.thread.start`` (emits `DEBUG` messages)
+  * ``redis_lock.refresh.thread.exit`` (emits `DEBUG` messages)
+  * ``redis_lock.refresh.start`` (emits `DEBUG` messages)
+  * ``redis_lock.refresh.shutdown`` (emits `DEBUG` messages)
+  * ``redis_lock.refresh.exit`` (emits `DEBUG` messages)
+  * ``redis_lock.release`` (emits `DEBUG` messages)
+
+  Contributed by Salomon Smeke Cohen in `#80 <https://github.com/ionelmc/python-redis-lock/pull/80>`_.
+* Fixed few CI issues regarding doc checks.
+  Contributed by Salomon Smeke Cohen in `#81 <https://github.com/ionelmc/python-redis-lock/pull/81>`_.
+
 3.6.0 (2020-07-23)
 ------------------
 
