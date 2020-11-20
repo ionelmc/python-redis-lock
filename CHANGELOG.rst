@@ -2,7 +2,7 @@
 Changelog
 =========
 
-3.7.0 (2020-11-19)
+3.7.0 (2020-11-20)
 ------------------
 
 * Made logger names more specific. Now can have granular filtering on these new logger names:
