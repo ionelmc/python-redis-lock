@@ -7,7 +7,8 @@ from sched import scheduler
 
 from redis import StrictRedis
 
-from redis_lock import Lock, logger
+from redis_lock import Lock
+from redis_lock import logger
 
 logging.basicConfig(level="WARN", format="%(message)s")
 logger.setLevel("WARN")

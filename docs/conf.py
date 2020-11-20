@@ -23,8 +23,10 @@ copyright = '{0}, {1}'.format(year, author)
 version = release = '3.6.0'
 
 linkcheck_ignore = [
-    'https://coveralls\\.io/repos/ionelmc/python\\-redis\\-lock/badge\\.svg\\?branch=master\\&service=github',  # This redirects to hosted % image on AWS.
-    'https://github\\.com/jazzband/django\\-redis\\#configure\\-as\\-cache\\-backend',  # This anchor is incorrectly marked as missing. GH bug?
+    # This redirects to hosted % image on AWS.
+    'https://coveralls\\.io/repos/ionelmc/python\\-redis\\-lock/badge\\.svg\\?branch=master\\&service=github',
+    # This anchor is incorrectly marked as missing. GH bug?
+    'https://github\\.com/jazzband/django\\-redis\\#configure\\-as\\-cache\\-backend',
 ]
 pygments_style = 'trac'
 templates_path = ['.']
