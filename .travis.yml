@@ -65,15 +65,19 @@ matrix:
       python: '3.9'
     - env:
         - TOXENV=pypy3-dj111-cover,codecov,coveralls
+        - TOXPYTHON=pypy3
       python: 'pypy3'
     - env:
         - TOXENV=pypy3-dj111-nocov
+        - TOXPYTHON=pypy3
       python: 'pypy3'
     - env:
         - TOXENV=pypy3-dj3-cover,codecov,coveralls
+        - TOXPYTHON=pypy3
       python: 'pypy3'
     - env:
         - TOXENV=pypy3-dj3-nocov
+        - TOXPYTHON=pypy3
       python: 'pypy3'
     - env:
         - TOXENV=py35-dj111-cover,codecov,coveralls
