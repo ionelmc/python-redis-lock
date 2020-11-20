@@ -7,7 +7,7 @@ from os import urandom
 
 from redis import StrictRedis
 
-__version__ = '3.6.0'
+__version__ = '3.7.0'
 
 loggers = {
     k: getLogger(".".join((__name__, k)))

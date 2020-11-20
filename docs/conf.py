@@ -20,7 +20,7 @@ project = 'redis-lock'
 year = '2013-2020'
 author = 'Ionel Cristian Mărieș'
 copyright = '{0}, {1}'.format(year, author)
-version = release = '3.6.0'
+version = release = '3.7.0'
 
 linkcheck_ignore = [
     # This redirects to hosted % image on AWS.
