@@ -240,9 +240,9 @@ Requirements
 Similar projects
 ================
 
-* `bbangert/retools <https://github.com/bbangert/retools/blob/master/retools/lock.py>`_ - acquire does spinloop
+* `bbangert/retools <https://github.com/bbangert/retools/blob/0.4/retools/lock.py>`_ - acquire does spinloop
 * `distributing-locking-python-and-redis <https://chris-lamb.co.uk/posts/distributing-locking-python-and-redis>`_ - acquire does polling
-* `cezarsa/redis_lock <https://github.com/cezarsa/redis_lock/blob/master/redis_lock/__init__.py>`_ - acquire does not block
-* `andymccurdy/redis-py <https://github.com/andymccurdy/redis-py/blob/master/redis/client.py#L2167>`_ - acquire does spinloop
-* `mpessas/python-redis-lock <https://github.com/mpessas/python-redis-lock/blob/master/redislock/lock.py>`_ - blocks fine but no expiration
-* `brainix/pottery <https://github.com/brainix/pottery/blob/8dae614214bc131fff7a13c7052adf63963ff32e/pottery/redlock.py>`_ - acquire does spinloop
+* `cezarsa/redis_lock <https://github.com/cezarsa/redis_lock/blob/0.2.0/redis_lock/__init__.py>`_ - acquire does not block
+* `andymccurdy/redis-py <https://github.com/andymccurdy/redis-py/blob/3.5.3/redis/lock.py>`_ - acquire does spinloop
+* `mpessas/python-redis-lock <https://github.com/mpessas/python-redis-lock/blob/b512eef0fc5e1e2e82a6a31f65cd88c2c37dfe4b/redislock/lock.py>`_ - blocks fine but no expiration
+* `brainix/pottery <https://github.com/brainix/pottery/blob/v1.1.5/pottery/redlock.py>`_ - acquire does spinloop
