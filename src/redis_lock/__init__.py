@@ -173,7 +173,7 @@ class Lock(object):
             self._id = id
         else:
             raise TypeError("Incorrect type for `id`. Must be bytes/str not %s." % type(id))
-        self._name = 'lock:' + name
+        self._name = name
         self._signal = 'lock-signal:' + name
         self._lock_renewal_interval = (float(expire) * 2 / 3
                                        if auto_renewal
