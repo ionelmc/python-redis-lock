@@ -55,10 +55,6 @@ EXTEND_SCRIPT = b"""
     end
 """
 
-RESET_SCRIPT = b"""
-    return redis.call('del', KEYS[1])
-"""
-
 RESET_ALL_SCRIPT = b"""
     local locks = redis.call('keys', 'lock:*')
     local signal
@@ -181,7 +177,6 @@ class Lock(object):
             reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
             cls.unlock_script = redis_client.register_script(UNLOCK_SCRIPT)
             cls.extend_script = redis_client.register_script(EXTEND_SCRIPT)
-            cls.reset_script = redis_client.register_script(RESET_SCRIPT)
             cls.reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
 
     @property
