@@ -103,7 +103,6 @@ class Lock(object):
     """
     unlock_script = None
     extend_script = None
-    reset_script = None
     reset_all_script = None
 
     def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, strict=True):
