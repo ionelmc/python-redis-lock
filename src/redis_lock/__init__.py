@@ -246,7 +246,7 @@ class Lock(object):
                 if timed_out:
                     return False
                 elif blocking:
-                    timed_out = not self._client.blpop(self._signal, blpop_timeout) and timeout
+                    timed_out = timeout and not self._client.blpop(self._signal, blpop_timeout)
                 else:
                     logger.warning("Failed to get %r.", self._name)
                     return False
