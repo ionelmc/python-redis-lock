@@ -7,7 +7,7 @@ from os import urandom
 
 from redis import StrictRedis
 
-__version__ = '3.7.0'
+__version__ = '3.8.1'
 
 loggers = {
     k: getLogger(".".join((__name__, k)))
@@ -187,10 +187,55 @@ class Lock(object):
         global reset_all_script
         if reset_all_script is None:
             reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
-            cls.unlock_script = redis_client.register_script(UNLOCK_SCRIPT)
-            cls.extend_script = redis_client.register_script(EXTEND_SCRIPT)
-            cls.reset_script = redis_client.register_script(RESET_SCRIPT)
-            cls.reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
+            if isinstance(redis_client, StrictRedis):
+                cls.unlock_script = redis_client.register_script(UNLOCK_SCRIPT)
+                cls.extend_script = redis_client.register_script(EXTEND_SCRIPT)
+                cls.reset_script = redis_client.register_script(RESET_SCRIPT)
+                cls.reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
+            elif isinstance(redis_client, RedisCluster):
+                cls.unlock_script = cls.cluster_unlock_execution
+                cls.extend_script = cls.cluster_extend_execution
+                cls.reset_script = cls.cluster_reset_execution
+                cls.reset_all_script = cls.cluster_reset_all_execution
+
+    @staticmethod
+    def cluster_unlock_execution(client, keys, args):
+        if client.execute_command("get", keys[1]) != args[1]:
+            return 1
+        else:
+            client.execute_command("del", keys[2])
+            client.execute_command("lpush", keys[2], 1)
+            client.execute_command("pexpire", keys[2], args[2])
+            client.execute_command("del", keys[1])
+            return 0
+
+    @staticmethod
+    def cluster_extend_execution(client, keys, args):
+        if client.execute_command("get", keys[1]) != args[1]:
+            return 1
+        elif client.execute_command("ttl", keys[1]) < 0:
+            return 2
+        else:
+            client.execute_command("expire", keys[1], args[2])
+            return 0
+
+    @staticmethod
+    def cluster_reset_execution(client, keys, args):
+        client.execute_command('del', keys[2])
+        client.execute_command('lpush', keys[2], 1)
+        client.execute_command('pexpire', keys[2], args[2])
+        return client.execute_command('del', keys[1])
+
+    @staticmethod
+    def cluster_reset_all_execution(client, keys, args):
+        locks = client.execute_command("KEYS", "lock:*")
+        for lock in locks:
+            signal = lock[5:]
+            client.execute_command('del', signal)
+            client.execute_command('lpush', signal, 1)
+            client.execute_command('expire', signal, 1)
+            client.execute_command('del', lock)
+        return len(locks)
 
     @property
     def _held(self):
