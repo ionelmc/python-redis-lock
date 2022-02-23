@@ -5,7 +5,7 @@ from base64 import b64encode
 from logging import getLogger
 from os import urandom
 
-from redis import StrictRedis
+from redis import StrictRedis, RedisCluster
 
 __version__ = '3.7.0'
 
@@ -119,7 +119,7 @@ class Lock(object):
     def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, strict=True, signal_expire=1000):
         """
         :param redis_client:
-            An instance of :class:`~StrictRedis`.
+            An instance of :class:`~StrictRedis or ~RedisCluster`.
         :param name:
             The name (redis key) the lock should have.
         :param expire:
@@ -141,11 +141,11 @@ class Lock(object):
             time, subclass Lock, call ``super().__init__()`` then set
             ``self._lock_renewal_interval`` to your desired interval.
         :param strict:
-            If set ``True`` then the ``redis_client`` needs to be an instance of ``redis.StrictRedis``.
+            If set ``True`` then the ``redis_client`` needs to be an instance of ``redis.StrictRedis`` or ```redis.RedisCluster`.
         :param signal_expire:
             Advanced option to override signal list expiration in milliseconds. Increase it for very slow clients. Default: ``1000``.
         """
-        if strict and not isinstance(redis_client, StrictRedis):
+        if strict and not (isinstance(redis_client, StrictRedis) or isinstance(redis_client, RedisCluster)):
             raise ValueError("redis_client must be instance of StrictRedis. "
                              "Use strict=False if you know what you're doing.")
         if auto_renewal and expire is None:
@@ -382,7 +382,7 @@ def reset_all(redis_client):
     Forcibly deletes all locks if its remains (like a crash reason). Use this with care.
 
     :param redis_client:
-        An instance of :class:`~StrictRedis`.
+        An instance of :class:`~StrictRedis or ~RedisCluster`.
     """
     Lock.register_scripts(redis_client)
 
