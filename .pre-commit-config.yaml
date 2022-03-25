@@ -18,3 +18,7 @@ repos:
     rev: master
     hooks:
       - id: flake8
+  - repo: https://github.com/psf/black
+    rev: main
+    hooks:
+      - id: black

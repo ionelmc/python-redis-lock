@@ -16,22 +16,24 @@ default_context:
     command_line_interface: no
     command_line_interface_bin_name: '-'
     coveralls: yes
-    coveralls_token: '[Required for Appveyor, take it from https://coveralls.io/github/ionelmc/python-redis-lock]'
     distribution_name: python-redis-lock
     email: contact@ionelmc.ro
     full_name: Ionel Cristian Mărieș
-    landscape: no
+    github_actions: yes
+    legacy_python: no
     license: BSD 2-Clause License
     linter: flake8
     package_name: redis_lock
     pre_commit: yes
+    pre_commit_formatter: black
     project_name: redis-lock
     project_short_description: Lock context manager implemented via redis SETNX/BLPOP.
     pypi_badge: yes
     pypi_disable_upload: no
-    release_date: '2020-07-23'
+    release_date: '2020-11-20'
     repo_hosting: github.com
     repo_hosting_domain: github.com
+    repo_main_branch: master
     repo_name: python-redis-lock
     repo_username: ionelmc
     requiresio: yes
@@ -45,9 +47,10 @@ default_context:
     test_matrix_configurator: no
     test_matrix_separate_coverage: yes
     test_runner: pytest
-    travis: yes
+    travis: no
     travis_osx: no
-    version: 3.6.0
+    version: 3.7.0
+    version_manager: bump2version
     website: http://blog.ionelmc.ro
     year_from: '2013'
-    year_to: '2020'
+    year_to: '2022'
