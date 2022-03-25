@@ -348,18 +348,11 @@ def test_no_overlap(redis_server):
                             raise
 
 
-NWORKERS = 125
+def _no_overlap2_workerfn(go, count_lock, count):
+    logging.basicConfig(level=logging.DEBUG)
+    with StrictRedis(unix_socket_path=UDS_PATH) as conn:
+        redis_lock = Lock(conn, 'lock')
 
-
-@pytest.mark.skipif(platform.python_implementation() == 'PyPy', reason="This appears to be way too slow to run on PyPy")
-def test_no_overlap2(make_process, make_conn):
-    """The second version of contention test, that uses multiprocessing."""
-    go = multiprocessing.Event()
-    count_lock = multiprocessing.Lock()
-    count = multiprocessing.Value('H', 0)
-
-    def workerfn(go, count_lock, count):
-        redis_lock = Lock(make_conn(), 'lock')
         with count_lock:
             count.value += 1
 
@@ -369,8 +362,19 @@ def test_no_overlap2(make_process, make_conn):
             with count_lock:
                 count.value += 1
 
+
+NWORKERS = 125
+
+
+@pytest.mark.skipif(platform.python_implementation() == 'PyPy', reason="This appears to be way too slow to run on PyPy")
+def test_no_overlap2(make_process, redis_server):
+    """The second version of contention test, that uses multiprocessing."""
+    go = multiprocessing.Event()
+    count_lock = multiprocessing.Lock()
+    count = multiprocessing.Value('H', 0)
+
     for _ in range(NWORKERS):
-        make_process(target=workerfn, args=(go, count_lock, count)).start()
+        make_process(target=_no_overlap2_workerfn, args=(go, count_lock, count)).start()
 
     # Wait until all workers will come to point when they are ready to acquire
     # the redis lock.
