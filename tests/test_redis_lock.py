@@ -2,6 +2,7 @@ from __future__ import division
 from __future__ import print_function
 
 import gc
+import logging
 import multiprocessing
 import os
 import platform
@@ -17,6 +18,9 @@ from process_tests import dump_on_error
 from process_tests import wait_for_strings
 from redis import StrictRedis
 
+from conf import HELPER
+from conf import TIMEOUT
+from conf import UDS_PATH
 from redis_lock import AlreadyAcquired
 from redis_lock import InvalidTimeout
 from redis_lock import Lock
@@ -26,28 +30,12 @@ from redis_lock import TimeoutNotUsable
 from redis_lock import TimeoutTooLarge
 from redis_lock import reset_all
 
-from conf import HELPER
-from conf import TIMEOUT
-from conf import UDS_PATH
-
 
 def maybe_decode(data):
     if isinstance(data, bytes):
         return data.decode('ascii')
     else:
         return data
-
-
-@pytest.yield_fixture
-def redis_server(scope='module'):
-    try:
-        os.unlink(UDS_PATH)
-    except OSError:
-        pass
-    with TestProcess('redis-server', '--port', '0', '--unixsocket', UDS_PATH) as process:
-        with dump_on_error(process.read):
-            wait_for_strings(process.read, TIMEOUT, "Running")
-            yield process
 
 
 def make_conn_factory(addfinalizer, **options):
