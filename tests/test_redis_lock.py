@@ -32,6 +32,8 @@ from conf import UDS_PATH
 
 pytest_plugins = ('pytester',)
 
+skipifpypy = partial(pytest.mark.skipif(platform.python_implementation() == 'PyPy'))
+
 
 def maybe_decode(data):
     if isinstance(data, bytes):
@@ -58,7 +60,13 @@ def conn(request, make_conn):
     return make_conn()
 
 
-@pytest.fixture(params=['normal', 'gevent', 'eventlet'])
+@pytest.fixture(
+    params=[
+        'normal',
+        'gevent',
+        pytest.param('eventlet', marks=skipifpypy(reason="apparently broken on PyPy")),
+    ]
+)
 def effect(request):
     def wrap_name_with_effect(name):
         if request.param == 'normal':
@@ -407,22 +415,19 @@ def _no_overlap2_workerfn(go, count_lock, count):
                 count.value += 1
 
 
-NWORKERS = 125
-
-
-@pytest.mark.skipif(platform.python_implementation() == 'PyPy', reason="This appears to be way too slow to run on PyPy")
+@skipifpypy(reason="way too slow to run on PyPy")
 def test_no_overlap2(make_process, redis_server):
     """The second version of contention test, that uses multiprocessing."""
     go = multiprocessing.Event()
     count_lock = multiprocessing.Lock()
     count = multiprocessing.Value('H', 0)
 
-    for _ in range(NWORKERS):
+    for _ in range(125):
         make_process(target=_no_overlap2_workerfn, args=(go, count_lock, count)).start()
 
     # Wait until all workers will come to point when they are ready to acquire
     # the redis lock.
-    while count.value < NWORKERS:
+    while count.value < 125:
         time.sleep(0.5)
 
     # Then "count" will be used as counter of workers, which acquired
