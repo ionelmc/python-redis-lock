@@ -74,4 +74,3 @@ Key takeaways:
 
   * Some clients never get to acquire the lock.
     Note the ``Min`` column being ``0`` and the ``Max`` column being very high (indicating how many acquires a single client got).
-

@@ -22,6 +22,7 @@ except ImportError:
     else:
         getch = msvcrt.getch
 else:
+
     def getch():
         """getch() -> key character
 
@@ -41,6 +42,7 @@ else:
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return ch
+
 
 logging.basicConfig(level="DEBUG", format="%(asctime)s | %(process)6s | %(message)s")
 

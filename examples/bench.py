@@ -62,15 +62,7 @@ logging.critical("Implementation Lock duration Concurrency Acquires: Total      
 logging.critical("============== ============= =========== ========= ========== ========== ========== ==========")
 
 
-for concurrency in (
-    1,
-    2,
-    3,
-    6,
-    12,
-    24,
-    48
-):
+for concurrency in (1, 2, 3, 6, 12, 24, 48):
     for duration in (
         0,
         0.01,
@@ -88,11 +80,20 @@ for concurrency in (
             if concurrency > 1:
                 logging.critical(
                     "%14s %12.3fs %11s %20s %10.2f %10s %10s",
-                    type_, duration, concurrency, sum(ret), sum(ret) / len(ret), min(ret), max(ret)
+                    type_,
+                    duration,
+                    concurrency,
+                    sum(ret),
+                    sum(ret) / len(ret),
+                    min(ret),
+                    max(ret),
                 )
             else:
                 logging.critical(
                     "%14s %12.3fs %11s %20s",
-                    type_, duration, concurrency, sum(ret),
+                    type_,
+                    duration,
+                    concurrency,
+                    sum(ret),
                 )
 logging.critical("============== ============= =========== ========= ========== ========== ========== ==========")

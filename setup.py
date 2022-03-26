@@ -75,5 +75,5 @@ setup(
         'django': [
             'django-redis>=3.8.0',
         ]
-    }
+    },
 )

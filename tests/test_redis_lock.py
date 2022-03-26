@@ -17,9 +17,6 @@ from process_tests import dump_on_error
 from process_tests import wait_for_strings
 from redis import StrictRedis
 
-from conf import HELPER
-from conf import TIMEOUT
-from conf import UDS_PATH
 from redis_lock import AlreadyAcquired
 from redis_lock import InvalidTimeout
 from redis_lock import Lock
@@ -29,7 +26,12 @@ from redis_lock import TimeoutNotUsable
 from redis_lock import TimeoutTooLarge
 from redis_lock import reset_all
 
-pytest_plugins = 'pytester',
+from conf import HELPER
+from conf import TIMEOUT
+from conf import UDS_PATH
+
+pytest_plugins = ('pytester',)
+
 
 def maybe_decode(data):
     if isinstance(data, bytes):
@@ -99,7 +101,8 @@ def test_simple(redis_server, effect):
         with dump_on_error(proc.read):
             name = 'lock:foobar'
             wait_for_strings(
-                proc.read, TIMEOUT,
+                proc.read,
+                TIMEOUT,
                 'Acquiring Lock(%r) ...' % name,
                 'Acquired Lock(%r).' % name,
                 'Releasing Lock(%r).' % name,
@@ -111,19 +114,25 @@ def test_simple_auto_renewal(redis_server, effect, LineMatcher):
     with TestProcess(sys.executable, HELPER, effect('test_simple_auto_renewal')) as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
-            wait_for_strings(proc.read, TIMEOUT, 'DIED.', )
-        LineMatcher(proc.read().splitlines()).fnmatch_lines([
-            '* threading.get_ident.__module__=%s' % effect.expected_impl,
-            '* Acquiring Lock(%r) ...' % name,
-            '* Acquired Lock(%r).' % name,
-            '* Starting renewal thread for Lock(%r). Refresh interval: 0.6666666666666666 seconds.' % name,
-            '* Refreshing Lock(%r).' % name,
-            '* Refreshing Lock(%r).' % name,
-            '* Signaling renewal thread for Lock(%r) to exit.' % name,
-            '* Exiting renewal thread for Lock(%r).' % name,
-            '* Renewal thread for Lock(%r) exited.' % name,
-            '* Releasing Lock(%r).' % name,
-        ])
+            wait_for_strings(
+                proc.read,
+                TIMEOUT,
+                'DIED.',
+            )
+        LineMatcher(proc.read().splitlines()).fnmatch_lines(
+            [
+                '* threading.get_ident.__module__=%s' % effect.expected_impl,
+                '* Acquiring Lock(%r) ...' % name,
+                '* Acquired Lock(%r).' % name,
+                '* Starting renewal thread for Lock(%r). Refresh interval: 0.6666666666666666 seconds.' % name,
+                '* Refreshing Lock(%r).' % name,
+                '* Refreshing Lock(%r).' % name,
+                '* Signaling renewal thread for Lock(%r) to exit.' % name,
+                '* Exiting renewal thread for Lock(%r).' % name,
+                '* Renewal thread for Lock(%r) exited.' % name,
+                '* Releasing Lock(%r).' % name,
+            ]
+        )
 
 
 def test_no_block(conn):
@@ -132,7 +141,8 @@ def test_no_block(conn):
             with dump_on_error(proc.read):
                 name = 'lock:foobar'
                 wait_for_strings(
-                    proc.read, TIMEOUT,
+                    proc.read,
+                    TIMEOUT,
                     'Acquiring Lock(%r) ...' % name,
                     'Failed to acquire Lock(%r).' % name,
                     'acquire=>False',
@@ -171,7 +181,8 @@ def test_timeout_acquired(conn):
         with dump_on_error(proc.read):
             name = 'lock:foobar'
             wait_for_strings(
-                proc.read, TIMEOUT,
+                proc.read,
+                TIMEOUT,
                 'Acquiring Lock(%r) ...' % name,
                 'Acquired Lock(%r).' % name,
             )
@@ -226,7 +237,8 @@ def test_expire(conn):
         with dump_on_error(proc.read):
             name = 'lock:foobar'
             wait_for_strings(
-                proc.read, TIMEOUT,
+                proc.read,
+                TIMEOUT,
                 'Acquiring Lock(%r) ...' % name,
                 'Acquired Lock(%r).' % name,
                 'Releasing Lock(%r).' % name,
@@ -373,10 +385,7 @@ def test_no_overlap(redis_server):
                 for other in events.values():
                     if other is not event:
                         try:
-                            if (
-                                other.start < event.start < other.end or
-                                other.start < event.end < other.end
-                            ):
+                            if other.start < event.start < other.end or other.start < event.end < other.end:
                                 pytest.fail('%s overlaps %s' % (event, other))
                         except Exception:
                             print("[%s/%s]" % (event, other))

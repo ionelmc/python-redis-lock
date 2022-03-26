@@ -25,16 +25,10 @@ session = ''
 if right_commands:
     session += 'tmux selectp -t0;tmux splitw -hd -p50 \"%s\"; ' % right_commands[-1]
 for index, command in enumerate(right_commands[:-1]):
-    session += 'tmux selectp -t1;tmux splitw -d -p%i \"%s\"; ' % (
-        100 / (len(right_commands) - index),
-        command
-    )
+    session += 'tmux selectp -t1;tmux splitw -d -p%i \"%s\"; ' % (100 / (len(right_commands) - index), command)
 
 for index, command in enumerate(left_commands[1:]):
-    session += 'tmux selectp -t0;tmux splitw -d -p%i \"%s\"; ' % (
-        100 / (len(left_commands) - index),
-        command
-    )
+    session += 'tmux selectp -t0;tmux splitw -d -p%i \"%s\"; ' % (100 / (len(left_commands) - index), command)
 if left_commands:
     session += left_commands[0]
 

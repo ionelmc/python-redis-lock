@@ -32,11 +32,9 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-INSTALLED_APPS = (
-)
+INSTALLED_APPS = ()
 
-MIDDLEWARE_CLASSES = (
-)
+MIDDLEWARE_CLASSES = ()
 
 ROOT_URLCONF = 'test_app.urls'
 

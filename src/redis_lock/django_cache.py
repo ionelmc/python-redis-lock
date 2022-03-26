@@ -6,23 +6,19 @@ from redis_lock import reset_all
 
 
 class RedisCache(PlainRedisCache):
-
     @property
     def __client(self):
         try:
             return self.client.get_client()
         except Exception as exc:
             raise NotImplementedError(
-                "RedisCache doesn't have a raw client: %r. "
-                "Use 'redis_cache.client.DefaultClient' as the CLIENT_CLASS !" % exc
+                f"RedisCache doesn't have a raw client: {exc}. Use 'redis_cache.client.DefaultClient' as the CLIENT_CLASS !"
             )
 
     def lock(self, key, expire=None, id=None, auto_renewal=False):
         return Lock(self.__client, key, expire=expire, id=id, auto_renewal=auto_renewal)
 
-    def locked_get_or_set(self, key, value_creator, version=None,
-                          expire=None, id=None, lock_key=None,
-                          timeout=DEFAULT_TIMEOUT):
+    def locked_get_or_set(self, key, value_creator, version=None, expire=None, id=None, lock_key=None, timeout=DEFAULT_TIMEOUT):
         """
         Fetch a given key from the cache. If the key does not exist, the key is added and
         set to the value returned when calling `value_creator`. The creator function

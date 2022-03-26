@@ -94,6 +94,7 @@ class Lock(object):
     """
     A Lock context manager implemented via redis SETNX/BLPOP.
     """
+
     unlock_script = None
     extend_script = None
     reset_script = None
@@ -132,8 +133,7 @@ class Lock(object):
             Advanced option to override signal list expiration in milliseconds. Increase it for very slow clients. Default: ``1000``.
         """
         if strict and not isinstance(redis_client, StrictRedis):
-            raise ValueError("redis_client must be instance of StrictRedis. "
-                             "Use strict=False if you know what you're doing.")
+            raise ValueError("redis_client must be instance of StrictRedis. Use strict=False if you know what you're doing.")
         if auto_renewal and expire is None:
             raise ValueError("Expire may not be None when auto_renewal is set")
 
@@ -161,9 +161,7 @@ class Lock(object):
             raise TypeError(f"Incorrect type for `id`. Must be bytes/str not {type(id)}.")
         self._name = 'lock:' + name
         self._signal = 'lock-signal:' + name
-        self._lock_renewal_interval = (float(expire) * 2 / 3
-                                       if auto_renewal
-                                       else None)
+        self._lock_renewal_interval = float(expire) * 2 / 3 if auto_renewal else None
         self._lock_renewal_thread = None
 
         self.register_scripts(redis_client)
@@ -255,10 +253,7 @@ class Lock(object):
         elif self._expire is not None:
             expire = self._expire
         else:
-            raise TypeError(
-                "To extend a lock 'expire' must be provided as an "
-                "argument to extend() method or at initialization time."
-            )
+            raise TypeError("To extend a lock 'expire' must be provided as an argument to extend() method or at initialization time.")
 
         error = self.extend_script(client=self._client, keys=(self._name, self._signal), args=(self._id, expire))
         if error == 1:
@@ -292,18 +287,18 @@ class Lock(object):
             raise AlreadyStarted("Lock refresh thread already started")
 
         logger_for_refresh_start.debug(
-            "Starting renewal thread for Lock(%r). Refresh interval: %s seconds.",
-            self._name,
-            self._lock_renewal_interval
+            "Starting renewal thread for Lock(%r). Refresh interval: %s seconds.", self._name, self._lock_renewal_interval
         )
         self._lock_renewal_stop = threading.Event()
         self._lock_renewal_thread = threading.Thread(
             group=None,
             target=self._lock_renewer,
-            kwargs={'name': self._name,
-                    'lockref': weakref.ref(self),
-                    'interval': self._lock_renewal_interval,
-                    'stop': self._lock_renewal_stop}
+            kwargs={
+                'name': self._name,
+                'lockref': weakref.ref(self),
+                'interval': self._lock_renewal_interval,
+                'stop': self._lock_renewal_stop,
+            },
         )
         self._lock_renewal_thread.demon = True
         self._lock_renewal_thread.start()

@@ -16,9 +16,7 @@ from conf import UDS_PATH
 
 if __name__ == '__main__':
     logging.basicConfig(
-        level=logging.DEBUG,
-        format='%(process)d %(asctime)s,%(msecs)05d %(name)s %(levelname)s %(message)s',
-        datefmt="%x~%X"
+        level=logging.DEBUG, format='%(process)d %(asctime)s,%(msecs)05d %(name)s %(levelname)s %(message)s', datefmt="%x~%X"
     )
     test_name = sys.argv[1]
     if ':' in test_name:
@@ -26,9 +24,11 @@ if __name__ == '__main__':
         logging.info('Applying effect %r.', effect)
         if effect == 'gevent':
             from gevent import monkey
+
             monkey.patch_all()
         elif effect == 'eventlet':
             import eventlet
+
             eventlet.monkey_patch()
         else:
             raise RuntimeError('Invalid effect spec %r.' % effect)
@@ -52,20 +52,22 @@ if __name__ == '__main__':
             time.sleep(1)
     elif test_name == 'test_expire':
         conn = StrictRedis(unix_socket_path=UDS_PATH)
-        with Lock(conn, "foobar", expire=TIMEOUT/4):
+        with Lock(conn, "foobar", expire=TIMEOUT / 4):
             time.sleep(0.1)
-        with Lock(conn, "foobar", expire=TIMEOUT/4):
+        with Lock(conn, "foobar", expire=TIMEOUT / 4):
             time.sleep(0.1)
     elif test_name == 'test_no_overlap':
         from sched import scheduler
+
         sched = scheduler(time.time, time.sleep)
-        start = time.time() + TIMEOUT/2
+        start = time.time() + TIMEOUT / 2
         # the idea is to start all the lock at the same time - we use the scheduler to start everything in TIMEOUT/2 seconds, by
         # that time all the forks should be ready
 
         def cb_no_overlap():
             with Lock(conn, "foobar"):
                 time.sleep(0.001)
+
         sched.enterabs(start, 0, cb_no_overlap, ())
         pids = []
 

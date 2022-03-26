@@ -15,12 +15,7 @@ def redis_server(tmp_path):
     except OSError:
         pass
     with TestProcess(
-        'redis-server',
-        '--port', '0',
-        '--save', '',
-        '--appendonly', 'yes',
-        '--dir', tmp_path,
-        '--unixsocket', UDS_PATH
+        'redis-server', '--port', '0', '--save', '', '--appendonly', 'yes', '--dir', tmp_path, '--unixsocket', UDS_PATH
     ) as redis_server:
         wait_for_strings(redis_server.read, TIMEOUT, 'ready to accept connections')
         yield redis_server
