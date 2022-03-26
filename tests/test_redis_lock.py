@@ -45,13 +45,13 @@ def make_conn_factory(addfinalizer, **options):
     return conn
 
 
-@pytest.fixture(scope='function', params=[True, False], ids=['decode_responses=True', 'decode_responses=False'])
+@pytest.fixture(params=[True, False], ids=['decode_responses=True', 'decode_responses=False'])
 def make_conn(request, redis_server):
     """Redis connection factory."""
     return partial(make_conn_factory, request.addfinalizer, decode_responses=request.param, encoding_errors='replace')
 
 
-@pytest.fixture(scope='function')
+@pytest.fixture
 def conn(request, make_conn):
     return make_conn()
 
@@ -98,8 +98,8 @@ def test_no_block(conn):
                 name = 'lock:foobar'
                 wait_for_strings(
                     proc.read, TIMEOUT,
-                    'Getting %r ...' % name,
-                    'Failed to get %r.' % name,
+                    'Acquiring Lock(%r) ...' % name,
+                    'Failed to acquire Lock(%r).' % name,
                     'acquire=>False',
                     'DIED.',
                 )
@@ -137,8 +137,8 @@ def test_timeout_acquired(conn):
             name = 'lock:foobar'
             wait_for_strings(
                 proc.read, TIMEOUT,
-                'Getting %r ...' % name,
-                'Got lock for %r.' % name,
+                'Acquiring Lock(%r) ...' % name,
+                'Acquired Lock(%r).' % name,
             )
             lock = Lock(conn, "foobar")
             assert lock.acquire(timeout=2)
@@ -192,9 +192,9 @@ def test_expire(conn):
             name = 'lock:foobar'
             wait_for_strings(
                 proc.read, TIMEOUT,
-                'Getting %r ...' % name,
-                'Got lock for %r.' % name,
-                'Releasing %r.' % name,
+                'Acquiring Lock(%r) ...' % name,
+                'Acquired Lock(%r).' % name,
+                'Releasing Lock(%r).' % name,
                 'DIED.',
             )
     lock = Lock(conn, "foobar")
@@ -306,9 +306,9 @@ def test_no_overlap(redis_server):
     with TestProcess(sys.executable, HELPER, 'test_no_overlap') as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
-            wait_for_strings(proc.read, 10 * TIMEOUT, 'Getting %r ...' % name)
-            wait_for_strings(proc.read, 10 * TIMEOUT, 'Got lock for %r.' % name)
-            wait_for_strings(proc.read, 10 * TIMEOUT, 'Releasing %r.' % name)
+            wait_for_strings(proc.read, 10 * TIMEOUT, 'Acquiring Lock(%r) ...' % name)
+            wait_for_strings(proc.read, 10 * TIMEOUT, 'Acquired Lock(%r).' % name)
+            wait_for_strings(proc.read, 10 * TIMEOUT, 'Releasing Lock(%r).' % name)
             wait_for_strings(proc.read, 10 * TIMEOUT, 'DIED.')
 
             class Event(object):
