@@ -49,6 +49,8 @@ jobs:
       with:
         python-version: {{ '${{ matrix.python }}' }}
         architecture: {{ '${{ matrix.python_arch }}' }}
+    - name: install redis-server
+      run: sudo apt-get install -y redis-server
     - name: install dependencies
       run: |
         python -mpip install --progress-bar=off -r ci/requirements.txt
