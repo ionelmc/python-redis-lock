@@ -4,7 +4,6 @@ from __future__ import print_function
 import gc
 import logging
 import multiprocessing
-import os
 import platform
 import sys
 import threading
@@ -30,6 +29,7 @@ from redis_lock import TimeoutNotUsable
 from redis_lock import TimeoutTooLarge
 from redis_lock import reset_all
 
+pytest_plugins = 'pytester',
 
 def maybe_decode(data):
     if isinstance(data, bytes):
@@ -56,6 +56,22 @@ def conn(request, make_conn):
     return make_conn()
 
 
+@pytest.fixture(params=['normal', 'gevent', 'eventlet'])
+def effect(request):
+    def wrap_name_with_effect(name):
+        if request.param == 'normal':
+            return name
+        else:
+            return '{}:{}'.format(name, request.param)
+
+    wrap_name_with_effect.expected_impl = {
+        'normal': '_thread',
+        'gevent': 'gevent.thread',
+        'eventlet': 'eventlet.green.thread',
+    }[request.param]
+    return wrap_name_with_effect
+
+
 @pytest.fixture
 def make_process(request):
     """Process factory, that makes processes, that terminate themselves
@@ -78,17 +94,36 @@ def test_upgrade(request, conn):
     assert not lock.acquire(blocking=False)
 
 
-def test_simple(redis_server):
-    with TestProcess(sys.executable, HELPER, 'test_simple') as proc:
+def test_simple(redis_server, effect):
+    with TestProcess(sys.executable, HELPER, effect('test_simple')) as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
             wait_for_strings(
                 proc.read, TIMEOUT,
-                'Getting %r ...' % name,
-                'Got lock for %r.' % name,
-                'Releasing %r.' % name,
+                'Acquiring Lock(%r) ...' % name,
+                'Acquired Lock(%r).' % name,
+                'Releasing Lock(%r).' % name,
                 'DIED.',
             )
+
+
+def test_simple_auto_renewal(redis_server, effect, LineMatcher):
+    with TestProcess(sys.executable, HELPER, effect('test_simple_auto_renewal')) as proc:
+        with dump_on_error(proc.read):
+            name = 'lock:foobar'
+            wait_for_strings(proc.read, TIMEOUT, 'DIED.', )
+        LineMatcher(proc.read().splitlines()).fnmatch_lines([
+            '* threading.get_ident.__module__=%s' % effect.expected_impl,
+            '* Acquiring Lock(%r) ...' % name,
+            '* Acquired Lock(%r).' % name,
+            '* Starting renewal thread for Lock(%r). Refresh interval: 0.6666666666666666 seconds.' % name,
+            '* Refreshing Lock(%r).' % name,
+            '* Refreshing Lock(%r).' % name,
+            '* Signaling renewal thread for Lock(%r) to exit.' % name,
+            '* Exiting renewal thread for Lock(%r).' % name,
+            '* Renewal thread for Lock(%r) exited.' % name,
+            '* Releasing Lock(%r).' % name,
+        ])
 
 
 def test_no_block(conn):

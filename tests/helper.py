@@ -4,6 +4,7 @@ from __future__ import print_function
 import logging
 import os
 import sys
+import threading
 import time
 
 from redis import StrictRedis
@@ -20,11 +21,26 @@ if __name__ == '__main__':
         datefmt="%x~%X"
     )
     test_name = sys.argv[1]
-
+    if ':' in test_name:
+        test_name, effect = test_name.split(':')
+        logging.info('Applying effect %r.', effect)
+        if effect == 'gevent':
+            from gevent import monkey
+            monkey.patch_all()
+        elif effect == 'eventlet':
+            import eventlet
+            eventlet.monkey_patch()
+        else:
+            raise RuntimeError('Invalid effect spec %r.' % effect)
+    logging.info('threading.get_ident.__module__=%s', threading.get_ident.__module__)
     if test_name == 'test_simple':
         conn = StrictRedis(unix_socket_path=UDS_PATH)
         with Lock(conn, "foobar"):
             time.sleep(0.1)
+    elif test_name == 'test_simple_auto_renewal':
+        conn = StrictRedis(unix_socket_path=UDS_PATH)
+        with Lock(conn, "foobar", expire=1, auto_renewal=True) as lock:
+            time.sleep(2)
     elif test_name == 'test_no_block':
         conn = StrictRedis(unix_socket_path=UDS_PATH)
         lock = Lock(conn, "foobar")
