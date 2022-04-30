@@ -300,7 +300,7 @@ class Lock(object):
                 'stop': self._lock_renewal_stop,
             },
         )
-        self._lock_renewal_thread.demon = True
+        self._lock_renewal_thread.daemon = True
         self._lock_renewal_thread.start()
 
     def _stop_lock_renewer(self):
