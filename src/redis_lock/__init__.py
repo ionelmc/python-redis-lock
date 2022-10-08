@@ -170,11 +170,11 @@ class Lock(object):
     def register_scripts(cls, redis_client):
         global reset_all_script
         if reset_all_script is None:
-            reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
             cls.unlock_script = redis_client.register_script(UNLOCK_SCRIPT)
             cls.extend_script = redis_client.register_script(EXTEND_SCRIPT)
             cls.reset_script = redis_client.register_script(RESET_SCRIPT)
             cls.reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
+            reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
 
     @property
     def _held(self):
