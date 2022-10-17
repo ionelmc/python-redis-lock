@@ -26,9 +26,8 @@ from redis_lock import TimeoutNotUsable
 from redis_lock import TimeoutTooLarge
 from redis_lock import reset_all
 
-from conf import HELPER
-from conf import TIMEOUT
-from conf import UDS_PATH
+from config import HELPER
+from config import TIMEOUT
 
 pytest_plugins = ('pytester',)
 
@@ -42,17 +41,20 @@ def maybe_decode(data):
         return data
 
 
-def make_conn_factory(addfinalizer, **options):
-    conn = StrictRedis(unix_socket_path=UDS_PATH, **options)
-    addfinalizer(conn.flushdb)
+@pytest.fixture(params=[True, False], ids=['decode_responses=True', 'decode_responses=False'])
+def make_conn_plain(request, redis_server, redis_socket):
+    def conn_factory(**options):
+        options.setdefault('encoding_errors', 'replace')
+        conn = StrictRedis(unix_socket_path=redis_socket, **options)
+        request.addfinalizer(conn.flushdb)
+        return conn
 
-    return conn
+    return conn_factory
 
 
 @pytest.fixture(params=[True, False], ids=['decode_responses=True', 'decode_responses=False'])
-def make_conn(request, redis_server):
-    """Redis connection factory."""
-    return partial(make_conn_factory, request.addfinalizer, decode_responses=request.param, encoding_errors='replace')
+def make_conn(request, make_conn_plain):
+    return partial(make_conn_plain, decode_responses=request.param)
 
 
 @pytest.fixture
@@ -97,15 +99,15 @@ def make_process(request):
     return make_process_factory
 
 
-def test_upgrade(request, conn):
-    legacy_conn = make_conn_factory(request.addfinalizer, decode_responses=False)
+def test_upgrade(conn, make_conn_plain):
+    legacy_conn = make_conn_plain(decode_responses=False)
     lock = Lock(conn, "foobar")
     legacy_conn.set(lock._name, b'\xd6{\xc93\xe9\xbd,\xdb\xb6\xa8<\x8ax\xd1<\xb9', nx=True, ex=lock._expire)
     assert not lock.acquire(blocking=False)
 
 
-def test_simple(redis_server, effect):
-    with TestProcess(sys.executable, HELPER, effect('test_simple')) as proc:
+def test_simple(redis_server, redis_socket, effect):
+    with TestProcess(sys.executable, HELPER, redis_socket, effect('test_simple')) as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
             wait_for_strings(
@@ -118,8 +120,8 @@ def test_simple(redis_server, effect):
             )
 
 
-def test_simple_auto_renewal(redis_server, effect, LineMatcher):
-    with TestProcess(sys.executable, HELPER, effect('test_simple_auto_renewal')) as proc:
+def test_simple_auto_renewal(redis_server, redis_socket, effect, LineMatcher):
+    with TestProcess(sys.executable, HELPER, redis_socket, effect('test_simple_auto_renewal')) as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
             wait_for_strings(
@@ -143,9 +145,9 @@ def test_simple_auto_renewal(redis_server, effect, LineMatcher):
         )
 
 
-def test_no_block(conn):
+def test_no_block(conn, redis_socket):
     with Lock(conn, "foobar"):
-        with TestProcess(sys.executable, HELPER, 'test_no_block') as proc:
+        with TestProcess(sys.executable, HELPER, redis_socket, 'test_no_block') as proc:
             with dump_on_error(proc.read):
                 name = 'lock:foobar'
                 wait_for_strings(
@@ -184,8 +186,8 @@ def test_timeout_expire_with_renewal(conn):
         assert lock.acquire(timeout=2) is False
 
 
-def test_timeout_acquired(conn):
-    with TestProcess(sys.executable, HELPER, 'test_timeout') as proc:
+def test_timeout_acquired(conn, redis_socket):
+    with TestProcess(sys.executable, HELPER, redis_socket, 'test_timeout') as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
             wait_for_strings(
@@ -238,10 +240,10 @@ def test_expire_int_conversion():
     assert lock._expire == 123
 
 
-def test_expire(conn):
+def test_expire(conn, redis_socket):
     lock = Lock(conn, "foobar", expire=TIMEOUT / 4)
     lock.acquire()
-    with TestProcess(sys.executable, HELPER, 'test_expire') as proc:
+    with TestProcess(sys.executable, HELPER, redis_socket, 'test_expire') as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
             wait_for_strings(
@@ -344,7 +346,7 @@ def test_plain(conn):
         time.sleep(0.01)
 
 
-def test_no_overlap(redis_server):
+def test_no_overlap(redis_server, redis_socket):
     """
     This test tries to simulate contention: lots of clients trying to acquire at the same time.
 
@@ -358,7 +360,7 @@ def test_no_overlap(redis_server):
     The subprocess being run (check helper.py) will fork bunch of processes and will try to
     syncronize them (using the builting sched) to try to acquire the lock at the same time.
     """
-    with TestProcess(sys.executable, HELPER, 'test_no_overlap') as proc:
+    with TestProcess(sys.executable, HELPER, redis_socket, 'test_no_overlap') as proc:
         with dump_on_error(proc.read):
             name = 'lock:foobar'
             wait_for_strings(proc.read, 10 * TIMEOUT, 'Acquiring Lock(%r) ...' % name)
@@ -400,15 +402,15 @@ def test_no_overlap(redis_server):
                             raise
 
 
-def _no_overlap2_workerfn(go, count_lock, count):
+def _no_overlap2_workerfn(redis_socket, event, count_lock, count):
     logging.basicConfig(level=logging.DEBUG)
-    with StrictRedis(unix_socket_path=UDS_PATH) as conn:
+    with StrictRedis(unix_socket_path=redis_socket) as conn:
         redis_lock = Lock(conn, 'lock')
 
         with count_lock:
             count.value += 1
 
-        go.wait()
+        event.wait()
 
         if redis_lock.acquire(blocking=True):
             with count_lock:
@@ -416,14 +418,14 @@ def _no_overlap2_workerfn(go, count_lock, count):
 
 
 @skipifpypy(reason="way too slow to run on PyPy")
-def test_no_overlap2(make_process, redis_server):
+def test_no_overlap2(make_process, redis_server, redis_socket):
     """The second version of contention test, that uses multiprocessing."""
-    go = multiprocessing.Event()
+    event = multiprocessing.Event()
     count_lock = multiprocessing.Lock()
     count = multiprocessing.Value('H', 0)
 
     for _ in range(125):
-        make_process(target=_no_overlap2_workerfn, args=(go, count_lock, count)).start()
+        make_process(target=_no_overlap2_workerfn, args=(redis_socket, event, count_lock, count)).start()
 
     # Wait until all workers will come to point when they are ready to acquire
     # the redis lock.
@@ -434,7 +436,7 @@ def test_no_overlap2(make_process, redis_server):
     # redis-lock with success.
     count.value = 0
 
-    go.set()
+    event.set()
 
     time.sleep(1)
 
