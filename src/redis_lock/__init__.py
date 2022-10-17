@@ -7,7 +7,7 @@ from typing import Union
 
 from redis import StrictRedis
 
-__version__ = '3.7.0'
+__version__ = '4.0.0'
 
 logger_for_acquire = getLogger(f"{__name__}.acquire")
 logger_for_refresh_thread = getLogger(f"{__name__}.refresh.thread")
