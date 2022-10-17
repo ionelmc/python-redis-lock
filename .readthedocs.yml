@@ -1,7 +1,7 @@
 # See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
 version: 2
 sphinx:
-  configuration: docs/config.py
+  configuration: docs/conf.py
 formats: all
 python:
   install:
