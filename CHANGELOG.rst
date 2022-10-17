@@ -5,10 +5,11 @@ Changelog
 4.0.0 (2022-10-17)
 ------------------
 
-* Dropped support for Python 2.
+* Dropped support for Python 2.7 and 3.6.
 * Switched from Travis to GitHub Actions.
 * Made logging messages more consistent.
 * Replaced the ``redis_lock.refresh.thread.*`` loggers with a single ``redis_lock.refresh.thread`` logger.
+* Various testing cleanup (mainly removal of hardcoded tmp paths).
 
 3.7.0 (2020-11-20)
 ------------------
