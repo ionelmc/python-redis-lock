@@ -167,7 +167,6 @@ You would write your functions like this:
                     cache.set(key, value)
         return val
 
-
 Troubleshooting
 ---------------
 
