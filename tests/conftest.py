@@ -5,7 +5,7 @@ from process_tests import wait_for_strings
 
 @pytest.fixture
 def redis_socket(tmp_path):
-    return tmp_path.joinpath('redis.sock')
+    return str(tmp_path.joinpath('redis.sock'))
 
 
 @pytest.fixture

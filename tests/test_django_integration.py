@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 try:
@@ -6,6 +8,18 @@ except ImportError:
     django = None
 else:
     from django.core.cache import cache
+
+
+@pytest.fixture(scope='module')
+def redis_socket_static(tmpdir_factory):
+    path = str(tmpdir_factory.getbasetemp() / 'redis.sock')
+    os.environ['REDIS_SOCKET'] = path
+    return path
+
+
+@pytest.fixture
+def redis_socket(redis_socket_static):
+    return redis_socket_static
 
 
 @pytest.mark.skipif("not django")

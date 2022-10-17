@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/dev/ref/settings/
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
 
-from conf import UDS_PATH
+REDIS_SOCKET = os.environ['REDIS_SOCKET']
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
@@ -74,6 +74,6 @@ STATIC_URL = '/static/'
 CACHES = {
     "default": {
         "BACKEND": "redis_lock.django_cache.RedisCache",
-        "LOCATION": "unix://" + UDS_PATH,
+        "LOCATION": f"unix://{REDIS_SOCKET}",
     }
 }
