@@ -240,7 +240,7 @@ class Lock(object):
             return
         if self._expire < 10:
             raise Exception("Expiration is too low to ensure renewal")
-        return min(self._expire * 0.8, MIN_RENEW_THRESHOLD_SECS)
+        return min(self._expire * 0.5, self._expire - MIN_RENEW_THRESHOLD_SECS)
 
     @classmethod
     def register_scripts(cls, redis_client):
