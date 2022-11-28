@@ -463,7 +463,7 @@ def test_release_from_nonblocking_leaving_garbage(conn):
 
 def test_no_auto_renewal(conn):
     lock = Lock(conn, 'lock_renewal', expire=3, auto_renewal=False)
-    assert lock._lock_renewal_interval is None
+    assert lock.lock_renewal_interval is None
     lock.acquire()
     assert lock._lock_renewal_thread is None, "No lock refresh thread should have been spawned"
 
@@ -479,8 +479,8 @@ def test_auto_renewal(conn):
 
     assert isinstance(lock._lock_renewal_thread, threading.Thread)
     assert not lock._lock_renewal_stop.is_set()
-    assert isinstance(lock._lock_renewal_interval, float)
-    assert lock._lock_renewal_interval == 2
+    assert isinstance(lock.lock_renewal_interval, float)
+    assert lock.lock_renewal_interval == 2
 
     time.sleep(3)
     assert maybe_decode(conn.get(lock._name)) == lock.id, "Key expired but it should have been getting renewed"
