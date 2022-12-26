@@ -99,11 +99,12 @@ class Lock(object):
     extend_script = None
     reset_script = None
     reset_all_script = None
+    blocking = None
 
     _lock_renewal_interval: float
     _lock_renewal_thread: Union[threading.Thread, None]
 
-    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, strict=True, signal_expire=1000):
+    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, strict=True, signal_expire=1000, blocking=True):
         """
         :param redis_client:
             An instance of :class:`~StrictRedis`.
@@ -131,6 +132,9 @@ class Lock(object):
             If set ``True`` then the ``redis_client`` needs to be an instance of ``redis.StrictRedis``.
         :param signal_expire:
             Advanced option to override signal list expiration in milliseconds. Increase it for very slow clients. Default: ``1000``.
+        :param blocking:
+            Boolean value specifying whether lock should be blocking or not.
+            Used in `__enter__` method.
         """
         if strict and not isinstance(redis_client, StrictRedis):
             raise ValueError("redis_client must be instance of StrictRedis. Use strict=False if you know what you're doing.")
@@ -163,6 +167,8 @@ class Lock(object):
         self._signal = 'lock-signal:' + name
         self._lock_renewal_interval = float(expire) * 2 / 3 if auto_renewal else None
         self._lock_renewal_thread = None
+
+        self.blocking = blocking
 
         self.register_scripts(redis_client)
 
@@ -318,9 +324,11 @@ class Lock(object):
         logger_for_refresh_exit.debug("Renewal thread for Lock(%r) exited.", self._name)
 
     def __enter__(self):
-        acquired = self.acquire(blocking=True)
+        acquired = self.acquire(blocking=self.blocking)
         if not acquired:
-            raise AssertionError(f"Lock({self._name}) wasn't acquired, but blocking=True was used!")
+            if self.blocking:
+                raise AssertionError(f"Lock({self._name}) wasn't acquired, but blocking=True was used!")
+            raise NotAcquired(f"Lock({self._name}) is not acquired or it already expired.")
         return self
 
     def __exit__(self, exc_type=None, exc_value=None, traceback=None):
