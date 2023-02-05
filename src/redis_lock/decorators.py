@@ -39,7 +39,7 @@ def register_scripts(meth, args, e):
             logger.error("Got No matching script error, registering scripts again\n\n%s", e)
             force_register_scripts_func(current_conn)
         else:
-            logger.exception("Got class without force_register_scripts, can't reregister", e)
+            logger.exception("Got class without force_register_scripts, can't register", e)
 
 
 def handle_redis_exception(method):
@@ -53,10 +53,15 @@ def handle_redis_exception(method):
             try:
                 return method(*args, **kwargs)
             except Exception as e:
-                logger.error("Got another excpetion after renew")
+                logger.error("Got another exception after renew")
                 raise e
         except redis.exceptions.NoScriptError as e:
             register_scripts(method, args, e)
+            try:
+                return method(*args, **kwargs)
+            except Exception as e:
+                logger.error("Got another exception after register_scripts")
+                raise e
 
     return wrapper
 
