@@ -168,6 +168,7 @@ class Lock(object):
         self._lock_renewal_thread = None
 
         self.register_scripts(redis_client)
+        self.is_locked = False
 
     @classmethod
     def register_scripts(cls, redis_client):
@@ -217,6 +218,7 @@ class Lock(object):
             logger.warning("Failed to get %r.", self._name)
             return False
 
+        self.is_locked = True
         logger.info("Got lock for %r.", self._name)
         if self._lock_renewal_interval is not None:
             self._start_lock_renewer()
@@ -321,6 +323,8 @@ class Lock(object):
             * Use ``Lock("name", id=id_from_other_place).release()``
             * Use ``Lock("name").reset()``
         """
+        if not self.is_locked:
+            return
         if self._lock_renewal_thread is not None:
             self._stop_lock_renewer()
         loggers["release"].debug("Releasing %r.", self._name)
@@ -329,6 +333,7 @@ class Lock(object):
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error:
             raise RuntimeError("Unsupported error code %s from EXTEND script." % error)
+        self.is_locked = False
 
     def locked(self):
         """
