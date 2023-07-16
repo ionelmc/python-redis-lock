@@ -172,7 +172,7 @@ class Lock(object):
     extend_script = None
     reset_all_script = None
 
-    def __init__(self, redis_client, redis_kwargs, name, expire=None, id=None, auto_renewal=False, strict=True):
+    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, strict=True):
         """
         :param redis_client:
             An instance of :class:`~StrictRedis`.
@@ -206,7 +206,6 @@ class Lock(object):
             raise ValueError("Expire may not be None when auto_renewal is set")
 
         self.conn = redis_client
-        self.redis_kwargs = redis_kwargs
 
         if expire:
             expire = int(expire)
