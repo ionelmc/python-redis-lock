@@ -9,37 +9,23 @@ logger = getLogger(__name__)
 
 
 def check_if_connection_exception(exception):
-    return isinstance(exception, redis.exceptions.ConnectionError) \
-           or isinstance(exception, TimeoutError) \
-           or isinstance(exception, redis.exceptions.TimeoutError)
-
-
-def renew_old_redis_connection(meth, args, e):
-    cls = get_class_from_method(meth)
-    current_conn = getattr(cls, "conn", None)
-    if not current_conn:
-        cls = args[0]
-        current_conn = getattr(cls, "conn", None)
-    if current_conn:
-        logger.error("Got connection error, renewing old connection to DB\n\n%s", e)
-        redis_kwargs = getattr(cls, "redis_kwargs", None)
-        if redis_kwargs:
-            cls.conn = type(current_conn)(**redis_kwargs)
+    return isinstance(exception, (redis.exceptions.ConnectionError, TimeoutError, redis.exceptions.TimeoutError,
+                                  redis.exceptions.ClusterDownError))
 
 
 def register_scripts(meth, args, e):
     cls = get_class_from_method(meth)
-    current_conn = getattr(cls, "conn", None)
-    if not current_conn:
+    redis_class = getattr(cls, "redis_class", None)
+    if not redis_class:
         cls = args[0]
-        current_conn = getattr(cls, "conn", None)
-    if current_conn:
-        force_register_scripts_func = getattr(cls, "force_register_scripts", None)
-        if force_register_scripts_func:
-            logger.error("Got No matching script error, registering scripts again\n\n%s", e)
-            force_register_scripts_func(current_conn)
+        redis_class = getattr(cls, "redis_class", None)
+    if redis_class:
+        conn = redis_class.conn
+        register_scripts_func = getattr(cls, "register_scripts", None)
+        if register_scripts_func:
+            register_scripts_func(conn)
         else:
-            logger.exception("Got class without force_register_scripts, can't register", e)
+            logger.exception("Got class without register_scripts, can't register", e)
 
 
 def handle_redis_exception(method):
@@ -49,13 +35,9 @@ def handle_redis_exception(method):
         try:
             return method(*args, **kwargs)
         except (redis.exceptions.ConnectionError, TimeoutError, redis.exceptions.TimeoutError) as e:
-            renew_old_redis_connection(method, args, e)
-            try:
-                return method(*args, **kwargs)
-            except Exception as e:
-                logger.error("Got another exception after renew")
-                raise e
+            return method(*args, **kwargs)
         except redis.exceptions.NoScriptError as e:
+            logger.error("Got no script error, registering scripts again\n\n%s", e)
             register_scripts(method, args, e)
             try:
                 return method(*args, **kwargs)

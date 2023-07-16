@@ -59,19 +59,6 @@ EXTEND_SCRIPT = b"""
     end
 """
 
-RESET_ALL_SCRIPT = b"""
-    local locks = redis.call('keys', 'lock:*')
-    local signal
-    for _, lock in pairs(locks) do
-        signal = 'lock-signal:' .. string.sub(lock, 6)
-        redis.call('del', signal)
-        redis.call('lpush', signal, 1)
-        redis.call('expire', signal, 1)
-        redis.call('del', lock)
-    end
-    return #locks
-"""
-
 
 class AlreadyAcquired(RuntimeError):
     pass
@@ -131,10 +118,6 @@ def extend_locks(logger):
                 to_remove_locks.append(lock)
             except Exception as e:
                 logger.exception("Got exception on extend %s", e)
-                if lock.lock_renewal_interval:
-                    success = safe_extend_lock_time(lock)
-                    if not success:
-                        to_remove_locks.append(lock)
 
     return to_remove_locks
 
@@ -169,12 +152,11 @@ class Lock(object):
     """
     unlock_script = None
     extend_script = None
-    reset_all_script = None
 
-    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, strict=True):
+    def __init__(self, redis_class, name, expire=None, id=None, auto_renewal=False, strict=True):
         """
-        :param redis_client:
-            An instance of :class:`~StrictRedis`.
+        :param redis_class:
+            A class that has conn: an instance of :class:`~StrictRedis`.
         :param name:
             The name (redis key) the lock should have.
         :param expire:
@@ -198,13 +180,13 @@ class Lock(object):
         :param strict:
             If set ``True`` then the ``redis_client`` needs to be an instance of ``redis.StrictRedis``.
         """
-        if strict and not isinstance(redis_client, StrictRedis):
+        if strict and not isinstance(redis_class.conn, StrictRedis):
             raise ValueError("redis_client must be instance of StrictRedis. "
                              "Use strict=False if you know what you're doing.")
         if auto_renewal and expire is None:
             raise ValueError("Expire may not be None when auto_renewal is set")
 
-        self.conn = redis_client
+        self.redis_class = redis_class
 
         if expire:
             expire = int(expire)
@@ -228,7 +210,7 @@ class Lock(object):
         self._name = name
         self.lock_renewal_interval = self.get_renewal_interval(auto_renewal)
 
-        self.register_scripts(redis_client)
+        self.register_scripts(self.redis_class.conn)
         self.is_locked = False
 
     def get_renewal_interval(self, auto_renewal):
@@ -241,16 +223,8 @@ class Lock(object):
     @classmethod
     @handle_redis_exception
     def register_scripts(cls, redis_client):
-        global reset_all_script
-        if reset_all_script is None:
-            reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
-            cls.force_register_scripts(redis_client)
-
-    @classmethod
-    def force_register_scripts(cls, redis_client):
         cls.unlock_script = redis_client.register_script(UNLOCK_SCRIPT)
         cls.extend_script = redis_client.register_script(EXTEND_SCRIPT)
-        cls.reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
 
     @property
     def _held(self):
@@ -260,14 +234,14 @@ class Lock(object):
         """
         Forcibly deletes the lock. Use this with care.
         """
-        self.conn.delete(self._name)
+        self.redis_class.conn.delete(self._name)
 
     @property
     def id(self):
         return self._id
 
     def get_owner_id(self):
-        owner_id = self.conn.get(self._name)
+        owner_id = self.redis_class.conn.get(self._name)
         if isinstance(owner_id, binary_type):
             owner_id = owner_id.decode('ascii', 'replace')
         return owner_id
@@ -287,7 +261,7 @@ class Lock(object):
         if self._held:
             raise AlreadyAcquired("Already acquired from this Lock instance.")
 
-        is_locked = not self.conn.set(self._name, self._id, nx=True, ex=self._expire)
+        is_locked = not self.redis_class.conn.set(self._name, self._id, nx=True, ex=self._expire)
         if is_locked:
             logger.warning("Failed to get %r.", self._name)
             return False
@@ -318,7 +292,7 @@ class Lock(object):
                 "argument to extend() method or at initialization time."
             )
 
-        error = self.extend_script(client=self.conn, keys=(self._name,), args=(self._id, expire))
+        error = self.extend_script(client=self.redis_class.conn, keys=(self._name,), args=(self._id, expire))
         if error == 1:
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error == 2:
@@ -343,7 +317,7 @@ class Lock(object):
             self.lock_renewal_interval = None  # "signals the no extend required"
 
         loggers["release"].debug("Releasing %r.", self._name)
-        error = self.unlock_script(client=self.conn, keys=(self._name,), args=(self._id,))
+        error = self.unlock_script(client=self.redis_class.conn, keys=(self._name,), args=(self._id,))
         if error == 1:
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error:
@@ -358,19 +332,4 @@ class Lock(object):
         Checks that lock with same name already exists. This method returns true, even if
         lock have another id.
         """
-        return self.conn.exists(self._name) == 1
-
-
-reset_all_script = None
-
-
-def reset_all(redis_client):
-    """
-    Forcibly deletes all locks if its remains (like a crash reason). Use this with care.
-
-    :param redis_client:
-        An instance of :class:`~StrictRedis`.
-    """
-    Lock.register_scripts(redis_client)
-
-    reset_all_script(client=redis_client)  # noqa
+        return self.redis_class.conn.exists(self._name) == 1
