@@ -103,7 +103,6 @@ class NotExpirable(RuntimeError):
 
 lock_to_extend_time = dict()
 add_lock_extend_queue = SimpleQueue()
-MIN_RENEW_THRESHOLD_SECS = 6
 
 
 def safe_extend_lock_time(lock):
@@ -237,7 +236,7 @@ class Lock(object):
             return
         if self._expire < 10:
             raise Exception("Expiration is too low to ensure renewal")
-        return min(self._expire * 0.5, self._expire - MIN_RENEW_THRESHOLD_SECS)
+        return self._expire * 0.5
 
     @classmethod
     @handle_redis_exception
