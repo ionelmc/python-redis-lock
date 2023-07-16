@@ -233,6 +233,7 @@ class Lock(object):
         self.lock_renewal_interval = self.get_renewal_interval(auto_renewal)
 
         self.register_scripts(redis_client)
+        self.is_locked = False
 
     def get_renewal_interval(self, auto_renewal):
         if not auto_renewal:
@@ -295,6 +296,7 @@ class Lock(object):
             logger.warning("Failed to get %r.", self._name)
             return False
 
+        self.is_locked = True
         logger.info("Got lock for %r.", self._name)
         if self.lock_renewal_interval is not None:
             add_lock_extend_queue.put_nowait(self)
@@ -339,14 +341,18 @@ class Lock(object):
             * Use ``Lock("name", id=id_from_other_place).release()``
             * Use ``Lock("name").reset()``
         """
+        if not self.is_locked:
+            return
         if self.lock_renewal_interval is not None:
             self.lock_renewal_interval = None  # "signals the no extend required"
+
         loggers["release"].debug("Releasing %r.", self._name)
         error = self.unlock_script(client=self.conn, keys=(self._name,), args=(self._id,))
         if error == 1:
             raise NotAcquired("Lock %s is not acquired or it already expired." % self._name)
         elif error:
             raise RuntimeError("Unsupported error code %s from EXTEND script." % error)
+        self.is_locked = False
 
     @handle_redis_exception
     def locked(self):
