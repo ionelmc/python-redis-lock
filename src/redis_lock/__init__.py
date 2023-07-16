@@ -160,7 +160,7 @@ def start_locking_thread():
 
 
 lock_thread = threading.Thread(target=start_locking_thread)
-lock_thread.setDaemon(True)
+lock_thread.daemon = True
 lock_thread.start()
 
 
@@ -198,8 +198,6 @@ class Lock(object):
             ``self._lock_renewal_interval`` to your desired interval.
         :param strict:
             If set ``True`` then the ``redis_client`` needs to be an instance of ``redis.StrictRedis``.
-        :param signal_expire:
-            Advanced option to override signal list expiration in milliseconds. Increase it for very slow clients. Default: ``1000``.
         """
         if strict and not isinstance(redis_client, StrictRedis):
             raise ValueError("redis_client must be instance of StrictRedis. "
