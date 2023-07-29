@@ -9,7 +9,7 @@ To use redis-lock in a project::
 Blocking lock::
 
     conn = StrictRedis()
-    lock = redis_lock.Lock(conn, "name-of-the-lock"):
+    lock = redis_lock.Lock(conn, "name-of-the-lock")
     if lock.acquire():
         print("Got the lock. Doing some work ...")
         time.sleep(5)
@@ -17,7 +17,7 @@ Blocking lock::
 Blocking lock with timeout::
 
     conn = StrictRedis()
-    lock = redis_lock.Lock(conn, "name-of-the-lock"):
+    lock = redis_lock.Lock(conn, "name-of-the-lock")
     if lock.acquire(timeout=3):
         print("Got the lock. Doing some work ...")
         time.sleep(5)
@@ -27,7 +27,7 @@ Blocking lock with timeout::
 Non-blocking lock::
 
     conn = StrictRedis()
-    lock = redis_lock.Lock(conn, "name-of-the-lock"):
+    lock = redis_lock.Lock(conn, "name-of-the-lock")
     if lock.acquire(blocking=False):
         print("Got the lock. Doing some work ...")
         time.sleep(5)
