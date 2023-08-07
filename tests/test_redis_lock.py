@@ -341,6 +341,16 @@ def test_double_acquire(conn):
         pytest.raises(AlreadyAcquired, lock.acquire)
 
 
+def test_enter_already_acquired_with_not_blocking(conn):
+    lock = Lock(conn, "foobar")
+    acquired = lock.acquire()
+    assert acquired
+
+    with pytest.raises(NotAcquired):
+        with Lock(conn, "foobar", blocking=False):
+            pass
+
+
 def test_plain(conn):
     with Lock(conn, "foobar"):
         time.sleep(0.01)

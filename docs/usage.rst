@@ -50,6 +50,14 @@ The above example could be rewritten using context manager::
         print("Got the lock. Doing some work ...")
         time.sleep(5)
 
+You can pass `blocking=False` parameter to the contex manager (default value
+is True, will raise a NotAcquired exception if lock won't be acquired)::
+
+    conn = StrictRedis()
+    with redis_lock.Lock(conn, "name-of-the-lock", blocking=False):
+        print("Got the lock. Doing some work ...")
+        time.sleep(5)
+
 In cases, where lock not necessarily in acquired state, and
 user need to ensure, that it has a matching ``id``, example::
 
