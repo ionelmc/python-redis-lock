@@ -174,13 +174,11 @@ class Lock(object):
 
     @classmethod
     def register_scripts(cls, redis_client):
-        global reset_all_script
-        if reset_all_script is None:
+        if cls.reset_all_script is None:
             cls.unlock_script = redis_client.register_script(UNLOCK_SCRIPT)
             cls.extend_script = redis_client.register_script(EXTEND_SCRIPT)
             cls.reset_script = redis_client.register_script(RESET_SCRIPT)
             cls.reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
-            reset_all_script = redis_client.register_script(RESET_ALL_SCRIPT)
 
     @property
     def _held(self):
@@ -363,9 +361,6 @@ class Lock(object):
         return self._client.exists(self._name) == 1
 
 
-reset_all_script = None
-
-
 def reset_all(redis_client):
     """
     Forcibly deletes all locks if its remains (like a crash reason). Use this with care.
@@ -375,4 +370,4 @@ def reset_all(redis_client):
     """
     Lock.register_scripts(redis_client)
 
-    reset_all_script(client=redis_client)  # noqa
+    Lock.reset_all_script(client=redis_client)  # noqa
