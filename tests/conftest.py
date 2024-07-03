@@ -13,5 +13,5 @@ def redis_server(tmp_path, redis_socket):
     with TestProcess(
         'redis-server', '--port', '0', '--save', '', '--appendonly', 'yes', '--dir', tmp_path, '--unixsocket', redis_socket
     ) as redis_server:
-        wait_for_strings(redis_server.read, 2, 'ready to accept connections')
+        wait_for_strings(redis_server.read, 2, 'ready to accept connections', ignore_case=True)
         yield redis_server
