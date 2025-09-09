@@ -542,6 +542,23 @@ def test_auto_renewal(conn):
     assert lock._lock_renewal_thread is None
 
 
+def test_auto_renewal_with_max_renew_count(conn):
+    lock = Lock(conn, 'lock_renewal', expire=3, auto_renewal=True, max_renewal_count=2)
+    lock.acquire()
+
+    assert isinstance(lock._lock_renewal_thread, threading.Thread)
+    assert not lock._lock_renewal_stop.is_set()
+    assert isinstance(lock._lock_renewal_interval, float)
+    assert lock._lock_renewal_interval == 2
+
+    time.sleep(8)
+    assert lock.locked() is False
+
+    with pytest.raises(NotAcquired) as exc:
+        lock.release()
+        assert "is not acquired or it already expired" in str(exc)
+
+
 @pytest.mark.parametrize('signal_expire', [1000, 1500])
 @pytest.mark.parametrize('method', ['release', 'reset_all'])
 def test_signal_expiration(conn, signal_expire, method):

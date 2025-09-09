@@ -3,6 +3,7 @@ import weakref
 from base64 import b64encode
 from logging import getLogger
 from os import urandom
+from time import sleep
 from typing import Union
 
 from redis import StrictRedis
@@ -104,7 +105,7 @@ class Lock(object):
     _lock_renewal_interval: float
     _lock_renewal_thread: Union[threading.Thread, None]
 
-    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, strict=True, signal_expire=1000, blocking=True):
+    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, max_renewal_count=3, strict=True, signal_expire=1000, blocking=True):
         """
         :param redis_client:
             An instance of :class:`~StrictRedis`.
@@ -128,6 +129,8 @@ class Lock(object):
             an interval of ``expire*2/3``. If wishing to use a different renewal
             time, subclass Lock, call ``super().__init__()`` then set
             ``self._lock_renewal_interval`` to your desired interval.
+        :param max_renewal_count:
+            To avoid locking indefinitely use this param to set the maximum number of times to renew the lock.
         :param strict:
             If set ``True`` then the ``redis_client`` needs to be an instance of ``redis.StrictRedis``.
         :param signal_expire:
@@ -167,6 +170,7 @@ class Lock(object):
         self._signal = 'lock-signal:' + name
         self._lock_renewal_interval = float(expire) * 2 / 3 if auto_renewal else None
         self._lock_renewal_thread = None
+        self._max_renewal_count = max_renewal_count
 
         self.blocking = blocking
 
@@ -270,18 +274,24 @@ class Lock(object):
             raise RuntimeError(f"Unsupported error code {error} from EXTEND script")
 
     @staticmethod
-    def _lock_renewer(name, lockref, interval, stop):
+    def _lock_renewer(name, lockref, interval, max_renewal_count):
         """
         Renew the lock key in redis every `interval` seconds for as long
         as `self._lock_renewal_thread.should_exit` is False.
         """
-        while not stop.wait(timeout=interval):
+        renewal_count = 0
+        while renewal_count < max_renewal_count:
+            if renewal_count >= max_renewal_count:
+                logger_for_refresh_thread.debug("Stopping loop because Lock(%r) was renewed max number of times.", name)
+                break
+            sleep(interval)
             logger_for_refresh_thread.debug("Refreshing Lock(%r).", name)
             lock: "Lock" = lockref()
             if lock is None:
                 logger_for_refresh_thread.debug("Stopping loop because Lock(%r) was garbage collected.", name)
                 break
             lock.extend(expire=lock._expire)
+            renewal_count += 1
             del lock
         logger_for_refresh_thread.debug("Exiting renewal thread for Lock(%r).", name)
 
@@ -303,7 +313,7 @@ class Lock(object):
                 'name': self._name,
                 'lockref': weakref.ref(self),
                 'interval': self._lock_renewal_interval,
-                'stop': self._lock_renewal_stop,
+                'max_renewal_count': self._max_renewal_count
             },
         )
         self._lock_renewal_thread.daemon = True
