@@ -234,7 +234,7 @@ class Lock(object):
                 if timed_out:
                     return False
                 elif blocking:
-                    timed_out = not self._client.blpop(self._signal, blpop_timeout) and timeout
+                    timed_out = timeout and not self._client.blpop(self._signal, blpop_timeout)
                 else:
                     logger_for_acquire.warning("Failed to acquire Lock(%r).", self._name)
                     return False
