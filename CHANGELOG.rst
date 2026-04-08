@@ -2,6 +2,17 @@
 Changelog
 =========
 
+4.0.1 (2026-04-08)
+------------------
+
+* Fixed typo when setting daemon mode for the renewal thread.
+  Contributed by Eeo Jun in `#94 <https://github.com/ionelmc/python-redis-lock/pull/94>`_.
+* Fixed syntax in some examples in documentation.
+  Contributed by Lee Bush in `#110 <https://github.com/ionelmc/python-redis-lock/pull/110>`_.
+* Added the ``blocking`` argument to ``Lock.__init__`` to allow this behavior when using it as
+  a context manager.
+  Contributed by Andrew Petriv in `#102 <https://github.com/ionelmc/python-redis-lock/pull/102>`_.
+
 4.0.0 (2022-10-17)
 ------------------
 

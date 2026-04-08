@@ -16,3 +16,6 @@ Authors
 * Przemysław Suliga - https://github.com/suligap
 * Artem Slobodkin - https://github.com/artslob
 * Salomon Smeke Cohen - https://github.com/SalomonSmeke
+* Eeo Jun - https://github.com/eugene-eeo
+* Lee Bush - https://github.com/waterimp
+* Andrew Petriv - https://github.com/tavor118sn
