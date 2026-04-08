@@ -29,7 +29,7 @@ from config import TIMEOUT
 pytest_plugins = ('pytester',)
 
 skipifpypy = partial(pytest.mark.skipif(platform.python_implementation() == 'PyPy'))
-
+multiprocessing.set_start_method('fork')
 
 def maybe_decode(data):
     if isinstance(data, bytes):

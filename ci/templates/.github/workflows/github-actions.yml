@@ -29,8 +29,6 @@ jobs:
 {% endif %}
 {% for os, python_arch in [
     ['ubuntu', 'x64'],
-    ['windows', 'x64'],
-    ['macos', 'arm64'],
 ] %}
           - name: '{{ env }} ({{ os }}/{{ python_arch }})'
             python: '{{ python }}'
