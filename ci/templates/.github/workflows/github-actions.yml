@@ -1,5 +1,5 @@
 name: build
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 jobs:
   test:
     name: {{ '${{ matrix.name }}' }}
@@ -10,47 +10,46 @@ jobs:
       matrix:
         include:
           - name: 'check'
-            python: '3.9'
-            toxpython: 'python3.9'
+            python: '3.13'
             tox_env: 'check'
             os: 'ubuntu-latest'
           - name: 'docs'
-            python: '3.9'
-            toxpython: 'python3.9'
+            python: '3.13'
             tox_env: 'docs'
             os: 'ubuntu-latest'
 {% for env in tox_environments %}
 {% set prefix = env.split('-')[0] -%}
+{% set freethreaded = prefix.endswith('t') %}
 {% if prefix.startswith('pypy') %}
-{% set python %}pypy-{{ prefix[4] }}.{{ prefix[5] }}{% endset %}
+{% set python %}pypy-{{ prefix[4] }}.{{ prefix[5:] }}{% endset %}
 {% set cpython %}pp{{ prefix[4:5] }}{% endset %}
-{% set toxpython %}pypy{{ prefix[4] }}.{{ prefix[5] }}{% endset %}
 {% else %}
-{% set python %}{{ prefix[2] }}.{{ prefix[3:] }}{% endset %}
+{% set python %}{{ prefix[2] }}.{{ prefix[3:].rstrip('t') }}{% endset %}
 {% set cpython %}cp{{ prefix[2:] }}{% endset %}
-{% set toxpython %}python{{ prefix[2] }}.{{ prefix[3:] }}{% endset %}
 {% endif %}
 {% for os, python_arch in [
     ['ubuntu', 'x64'],
+    ['windows', 'x64'],
+    ['macos', 'arm64'],
 ] %}
-          - name: '{{ env }} ({{ os }})'
+          - name: '{{ env }} ({{ os }}/{{ python_arch }})'
             python: '{{ python }}'
-            toxpython: '{{ toxpython }}'
             python_arch: '{{ python_arch }}'
-            tox_env: '{{ env }}{% if 'cover' in env %},codecov{% endif %}'
+            tox_env: '{{ env }}'
             os: '{{ os }}-latest'
+{% if 'cover' in env %}
+            cover: true
+{% endif %}
 {% endfor %}
 {% endfor %}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v6
       with:
         python-version: {{ '${{ matrix.python }}' }}
         architecture: {{ '${{ matrix.python_arch }}' }}
-    - name: install redis-server
-      run: sudo apt-get install -y redis-server
     - name: install dependencies
       run: |
         python -mpip install --progress-bar=off -r ci/requirements.txt
@@ -59,7 +58,26 @@ jobs:
         tox --version
         pip list --format=freeze
     - name: test
-      env:
-        TOXPYTHON: '{{ '${{ matrix.toxpython }}' }}'
       run: >
         tox -e {{ '${{ matrix.tox_env }}' }} -v
+    - uses: coverallsapp/github-action@v2
+      if: matrix.cover
+      continue-on-error: true
+      with:
+        flag-name: {{ '${{ matrix.name }}' }}
+        parallel: true
+    - uses: codecov/codecov-action@v5
+      if: matrix.cover
+      with:
+        flags: {{ '${{ matrix.name }}' }}
+        token: {{ '${{ secrets.CODECOV_TOKEN }}' }}
+        verbose: true
+  finish:
+    needs: test
+    if: {{ '${{ always() }}' }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: coverallsapp/github-action@v2
+      with:
+        parallel-finished: true
+{{- '' }}

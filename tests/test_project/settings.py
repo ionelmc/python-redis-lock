@@ -72,8 +72,8 @@ STATIC_URL = '/static/'
 
 
 CACHES = {
-    "default": {
-        "BACKEND": "redis_lock.django_cache.RedisCache",
-        "LOCATION": f"unix://{REDIS_SOCKET}",
+    'default': {
+        'BACKEND': 'redis_lock.django_cache.RedisCache',
+        'LOCATION': f'unix://{REDIS_SOCKET}',
     }
 }

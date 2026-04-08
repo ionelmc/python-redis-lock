@@ -1,6 +1,3 @@
-from __future__ import division
-from __future__ import print_function
-
 import gc
 import logging
 import multiprocessing
@@ -66,7 +63,7 @@ def conn(request, make_conn):
     params=[
         'normal',
         'gevent',
-        pytest.param('eventlet', marks=skipifpypy(reason="apparently broken on PyPy")),
+        pytest.param('eventlet', marks=skipifpypy(reason='apparently broken on PyPy')),
     ]
 )
 def effect(request):
@@ -74,7 +71,7 @@ def effect(request):
         if request.param == 'normal':
             return name
         else:
-            return '{}:{}'.format(name, request.param)
+            return f'{name}:{request.param}'
 
     wrap_name_with_effect.expected_impl = {
         'normal': '_thread',
@@ -101,7 +98,7 @@ def make_process(request):
 
 def test_upgrade(conn, make_conn_plain):
     legacy_conn = make_conn_plain(decode_responses=False)
-    lock = Lock(conn, "foobar")
+    lock = Lock(conn, 'foobar')
     legacy_conn.set(lock._name, b'\xd6{\xc93\xe9\xbd,\xdb\xb6\xa8<\x8ax\xd1<\xb9', nx=True, ex=lock._expire)
     assert not lock.acquire(blocking=False)
 
@@ -146,7 +143,7 @@ def test_simple_auto_renewal(redis_server, redis_socket, effect, LineMatcher):
 
 
 def test_no_block(conn, redis_socket):
-    with Lock(conn, "foobar"):
+    with Lock(conn, 'foobar'):
         with TestProcess(sys.executable, HELPER, redis_socket, 'test_no_block') as proc:
             with dump_on_error(proc.read):
                 name = 'lock:foobar'
@@ -161,28 +158,28 @@ def test_no_block(conn, redis_socket):
 
 
 def test_timeout(conn):
-    with Lock(conn, "foobar"):
-        lock = Lock(conn, "foobar")
+    with Lock(conn, 'foobar'):
+        lock = Lock(conn, 'foobar')
         assert lock.acquire(timeout=1) is False
 
 
-@pytest.mark.parametrize("timeout", [0, "0", "123"])
+@pytest.mark.parametrize('timeout', [0, '0', '123'])
 def test_timeout_int_conversion(conn, timeout):
-    lock = Lock(conn, "foobar")
+    lock = Lock(conn, 'foobar')
     lock.acquire(blocking=True, timeout=timeout)
     lock.release()
 
 
 def test_timeout_expire(conn):
-    lock1 = Lock(conn, "foobar", expire=1)
+    lock1 = Lock(conn, 'foobar', expire=1)
     lock1.acquire()
-    lock2 = Lock(conn, "foobar")
+    lock2 = Lock(conn, 'foobar')
     assert lock2.acquire(timeout=2)
 
 
 def test_timeout_expire_with_renewal(conn):
-    with Lock(conn, "foobar", expire=1, auto_renewal=True):
-        lock = Lock(conn, "foobar")
+    with Lock(conn, 'foobar', expire=1, auto_renewal=True):
+        lock = Lock(conn, 'foobar')
         assert lock.acquire(timeout=2) is False
 
 
@@ -196,32 +193,32 @@ def test_timeout_acquired(conn, redis_socket):
                 'Acquiring Lock(%r) ...' % name,
                 'Acquired Lock(%r).' % name,
             )
-            lock = Lock(conn, "foobar")
+            lock = Lock(conn, 'foobar')
             assert lock.acquire(timeout=2)
 
 
 def test_not_usable_timeout(conn):
-    lock = Lock(conn, "foobar")
+    lock = Lock(conn, 'foobar')
     with pytest.raises(TimeoutNotUsable):
         lock.acquire(blocking=False, timeout=1)
 
 
 def test_expire_less_than_timeout(conn):
-    lock = Lock(conn, "foobar", expire=1)
+    lock = Lock(conn, 'foobar', expire=1)
     pytest.raises(TimeoutTooLarge, lock.acquire, blocking=True, timeout=2)
 
-    lock = Lock(conn, "foobar", expire=1, auto_renewal=True)
+    lock = Lock(conn, 'foobar', expire=1, auto_renewal=True)
     lock.acquire(blocking=True, timeout=2)
     lock.release()
 
 
 def test_invalid_timeout(conn):
-    lock = Lock(conn, "foobar")
+    lock = Lock(conn, 'foobar')
     pytest.raises(InvalidTimeout, lock.acquire, blocking=True, timeout=-123)
 
-    lock = Lock(conn, "foobar")
+    lock = Lock(conn, 'foobar')
     pytest.raises(InvalidTimeout, lock.acquire, blocking=True, timeout=-1)
-    pytest.raises(ValueError, lock.acquire, blocking=True, timeout="foobar")
+    pytest.raises(ValueError, lock.acquire, blocking=True, timeout='foobar')
 
 
 def test_expire_int_conversion():
@@ -233,15 +230,15 @@ def test_expire_int_conversion():
     lock = Lock(conn, name='foobar', strict=False, expire=0)
     assert lock._expire is None
 
-    lock = Lock(conn, name='foobar', strict=False, expire="1")
+    lock = Lock(conn, name='foobar', strict=False, expire='1')
     assert lock._expire == 1
 
-    lock = Lock(conn, name='foobar', strict=False, expire="123")
+    lock = Lock(conn, name='foobar', strict=False, expire='123')
     assert lock._expire == 123
 
 
 def test_expire(conn, redis_socket):
-    lock = Lock(conn, "foobar", expire=TIMEOUT / 4)
+    lock = Lock(conn, 'foobar', expire=TIMEOUT / 4)
     lock.acquire()
     with TestProcess(sys.executable, HELPER, redis_socket, 'test_expire') as proc:
         with dump_on_error(proc.read):
@@ -254,7 +251,7 @@ def test_expire(conn, redis_socket):
                 'Releasing Lock(%r).' % name,
                 'DIED.',
             )
-    lock = Lock(conn, "foobar")
+    lock = Lock(conn, 'foobar')
     try:
         assert lock.acquire(blocking=False) is True
     finally:
@@ -335,24 +332,24 @@ def test_extend_another_instance_different_id_fail(conn):
 
 
 def test_double_acquire(conn):
-    lock = Lock(conn, "foobar")
+    lock = Lock(conn, 'foobar')
     with lock:
         pytest.raises(RuntimeError, lock.acquire)
         pytest.raises(AlreadyAcquired, lock.acquire)
 
 
 def test_enter_already_acquired_with_not_blocking(conn):
-    lock = Lock(conn, "foobar")
+    lock = Lock(conn, 'foobar')
     acquired = lock.acquire()
     assert acquired
 
     with pytest.raises(NotAcquired):
-        with Lock(conn, "foobar", blocking=False):
+        with Lock(conn, 'foobar', blocking=False):
             pass
 
 
 def test_plain(conn):
-    with Lock(conn, "foobar"):
+    with Lock(conn, 'foobar'):
         time.sleep(0.01)
 
 
@@ -378,11 +375,11 @@ def test_no_overlap(redis_server, redis_socket):
             wait_for_strings(proc.read, 10 * TIMEOUT, 'Releasing Lock(%r).' % name)
             wait_for_strings(proc.read, 10 * TIMEOUT, 'DIED.')
 
-            class Event(object):
+            class Event:
                 pid = start = end = '?'
 
                 def __str__(self):
-                    return "Event(%s; %r => %r)" % (self.pid, self.start, self.end)
+                    return 'Event(%s; %r => %r)' % (self.pid, self.start, self.end)
 
             events = defaultdict(Event)
             for line in proc.read().splitlines():
@@ -408,7 +405,7 @@ def test_no_overlap(redis_server, redis_socket):
                             if other.start < event.start < other.end or other.start < event.end < other.end:
                                 pytest.fail('%s overlaps %s' % (event, other))
                         except Exception:
-                            print("[%s/%s]" % (event, other))
+                            print('[%s/%s]' % (event, other))
                             raise
 
 
@@ -427,7 +424,7 @@ def _no_overlap2_workerfn(redis_socket, event, count_lock, count):
                 count.value += 1
 
 
-@skipifpypy(reason="way too slow to run on PyPy")
+@skipifpypy(reason='way too slow to run on PyPy')
 def test_no_overlap2(make_process, redis_server, redis_socket):
     """The second version of contention test, that uses multiprocessing."""
     event = multiprocessing.Event()
@@ -454,22 +451,22 @@ def test_no_overlap2(make_process, redis_server, redis_socket):
 
 
 def test_reset(conn):
-    lock = Lock(conn, "foobar")
+    lock = Lock(conn, 'foobar')
     lock.reset()
-    new_lock = Lock(conn, "foobar")
+    new_lock = Lock(conn, 'foobar')
     new_lock.acquire(blocking=False)
     new_lock.release()
     pytest.raises(NotAcquired, lock.release)
 
 
 def test_reset_all(conn):
-    lock1 = Lock(conn, "foobar1")
-    lock2 = Lock(conn, "foobar2")
+    lock1 = Lock(conn, 'foobar1')
+    lock2 = Lock(conn, 'foobar2')
     lock1.acquire(blocking=False)
     lock2.acquire(blocking=False)
     reset_all(conn)
-    lock1 = Lock(conn, "foobar1")
-    lock2 = Lock(conn, "foobar2")
+    lock1 = Lock(conn, 'foobar1')
+    lock2 = Lock(conn, 'foobar2')
     lock1.acquire(blocking=False)
     lock2.acquire(blocking=False)
     lock1.release()
@@ -477,21 +474,21 @@ def test_reset_all(conn):
 
 
 def test_owner_id(conn):
-    unique_identifier = "foobar-identifier"
-    lock = Lock(conn, "foobar-tok", expire=TIMEOUT / 4, id=unique_identifier)
+    unique_identifier = 'foobar-identifier'
+    lock = Lock(conn, 'foobar-tok', expire=TIMEOUT / 4, id=unique_identifier)
     lock_id = lock.id
     assert lock_id == unique_identifier
 
 
 def test_get_owner_id(conn):
-    lock = Lock(conn, "foobar-tok")
+    lock = Lock(conn, 'foobar-tok')
     lock.acquire()
     assert lock.get_owner_id() == lock.id
     lock.release()
 
 
 def test_token(conn):
-    lock = Lock(conn, "foobar-tok")
+    lock = Lock(conn, 'foobar-tok')
     tok = lock.id
     assert conn.get(lock._name) is None
     lock.acquire(blocking=False)
@@ -499,10 +496,10 @@ def test_token(conn):
 
 
 def test_bogus_release(conn):
-    lock = Lock(conn, "foobar-tok")
+    lock = Lock(conn, 'foobar-tok')
     pytest.raises(NotAcquired, lock.release)
     lock.acquire()
-    lock2 = Lock(conn, "foobar-tok", id=lock.id)
+    lock2 = Lock(conn, 'foobar-tok', id=lock.id)
     lock2.release()
 
 
@@ -518,7 +515,7 @@ def test_no_auto_renewal(conn):
     lock = Lock(conn, 'lock_renewal', expire=3, auto_renewal=False)
     assert lock._lock_renewal_interval is None
     lock.acquire()
-    assert lock._lock_renewal_thread is None, "No lock refresh thread should have been spawned"
+    assert lock._lock_renewal_thread is None, 'No lock refresh thread should have been spawned'
 
 
 def test_auto_renewal_bad_values(conn):
@@ -536,7 +533,7 @@ def test_auto_renewal(conn):
     assert lock._lock_renewal_interval == 2
 
     time.sleep(3)
-    assert maybe_decode(conn.get(lock._name)) == lock.id, "Key expired but it should have been getting renewed"
+    assert maybe_decode(conn.get(lock._name)) == lock.id, 'Key expired but it should have been getting renewed'
 
     lock.release()
     assert lock._lock_renewal_thread is None
@@ -638,10 +635,10 @@ def test_given_id(conn):
     """
     name = 'foobar'
     key_name = 'lock:' + name
-    orig = Lock(conn, name, expire=100, id=b"a")
+    orig = Lock(conn, name, expire=100, id=b'a')
     orig.acquire()
     pytest.raises(TypeError, Lock, conn, name, id=object())
-    lock = Lock(conn, name, id=b"a")
+    lock = Lock(conn, name, id=b'a')
     pytest.raises(AlreadyAcquired, lock.acquire)
     lock.extend(100)
     lock.release()  # this works, note that this ain't the object that acquired the lock
@@ -659,11 +656,11 @@ def test_borken_expires():
     conn = object()
     pytest.raises(ValueError, Lock, redis_client=conn, name='foobar', expire=-1)
     pytest.raises(ValueError, Lock, redis_client=conn, name='foobar', expire=-123)
-    pytest.raises(ValueError, Lock, redis_client=conn, name='foobar', expire="-1")
+    pytest.raises(ValueError, Lock, redis_client=conn, name='foobar', expire='-1')
     lock = Lock(redis_client=conn, name='foobar', strict=False)
     pytest.raises(ValueError, lock.extend, expire=-1)
     pytest.raises(ValueError, lock.extend, expire=-123)
-    pytest.raises(ValueError, lock.extend, expire="-1")
+    pytest.raises(ValueError, lock.extend, expire='-1')
 
 
 def test_locked_method(conn):

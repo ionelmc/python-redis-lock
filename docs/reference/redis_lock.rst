@@ -7,3 +7,5 @@ redis_lock
 
 .. automodule:: redis_lock
     :members:
+    :undoc-members:
+    :special-members: __init__, __len__

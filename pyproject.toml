@@ -1,10 +1,116 @@
-[build-system]
-requires = [
-    "setuptools>=30.3.0",
-    "wheel",
+[project]
+name = "python-redis-lock"
+version = "4.0.0"
+description = "Lock context manager implemented via redis SETNX/BLPOP."
+requires-python = ">=3.7"
+license = "BSD-2-Clause"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Ionel Cristian Mărieș", email = "contact@ionelmc.ro" },
+]
+keywords = [
+    # eg: "keyword1", "keyword2", "keyword3",
+]
+classifiers = [
+    # complete classifier list: http://pypi.python.org/pypi?%3Aaction=list_classifiers
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    # uncomment if you test on these interpreters:
+    # "Programming Language :: Python :: Implementation :: IronPython",
+    # "Programming Language :: Python :: Implementation :: Jython",
+    # "Programming Language :: Python :: Implementation :: Stackless",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "redis>=2.10.0",
+]
+dynamic = [
+    "readme",
 ]
 
-[tool.black]
+    [project.urls]
+    "Changelog" = "https://python-redis-lock.readthedocs.io/en/latest/changelog.html"
+    "Documentation" = "https://python-redis-lock.readthedocs.io/"
+    "Issue Tracker" = "https://github.com/ionelmc/python-redis-lock/issues"
+    "Sources" = "https://github.com/ionelmc/python-redis-lock"
+
+    [project.optional-dependencies]
+    # rst = ["docutils>=0.11"]
+    django = [
+        "django-redis>=3.8.0",
+    ]
+
+[build-system]
+requires = [
+    "setuptools>=80",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.ruff]
+extend-exclude = ["static", "ci/templates"]
 line-length = 140
-target-version = ['py37']
-skip-string-normalization = true
+src = ["src", "tests"]
+target-version = "py39"
+
+    [tool.ruff.lint]
+    ignore = [
+        "RUF001",  # ruff-specific rules ambiguous-unicode-character-string
+        "S101",  # flake8-bandit assert
+        "S308",  # flake8-bandit suspicious-mark-safe-usage
+        "S603",  # flake8-bandit subprocess-without-shell-equals-true
+        "S607",  # flake8-bandit start-process-with-partial-path
+        "E501",  # pycodestyle line-too-long
+    ]
+    select = [
+        "B",  # flake8-bugbear
+        "C4",  # flake8-comprehensions
+        "DTZ",  # flake8-datetimez
+        "E",  # pycodestyle errors
+        "EXE",  # flake8-executable
+        "F",  # pyflakes
+        "I",  # isort
+        "INT",  # flake8-gettext
+        "PIE",  # flake8-pie
+        "PLC",  # pylint convention
+        "PLE",  # pylint errors
+        "PT",  # flake8-pytest-style
+        "PTH",  # flake8-use-pathlib
+        "RSE",  # flake8-raise
+        "RUF",  # ruff-specific rules
+        "S",  # flake8-bandit
+        "UP",  # pyupgrade
+        "W",  # pycodestyle warnings
+    ]
+
+        [tool.ruff.lint.per-file-ignores]
+        "ci/*" = ["S"]
+
+        [tool.ruff.lint.flake8-pytest-style]
+        fixture-parentheses = false
+        mark-parentheses = false
+
+        [tool.ruff.lint.isort]
+        forced-separate = ["conftest", "config"]
+        force-single-line = true
+
+    [tool.ruff.format]
+    quote-style = "single"
+
+[tool.setuptools.dynamic]
+readme = { file = ["README.rst", "CHANGELOG.rst"] }

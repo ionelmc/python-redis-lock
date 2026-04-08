@@ -44,7 +44,7 @@ else:
         return ch
 
 
-logging.basicConfig(level="DEBUG", format="%(asctime)s | %(process)6s | %(message)s")
+logging.basicConfig(level='DEBUG', format='%(asctime)s | %(process)6s | %(message)s')
 
 c = redis.StrictRedis()
 pid = os.getpid()
@@ -53,17 +53,17 @@ lock = redis_lock.Lock(c, sys.argv[1], expire=5)
 
 def run():
     with lock:
-        logging.debug("GOT LOCK. WAITING ...")
+        logging.debug('GOT LOCK. WAITING ...')
         time.sleep(0.05)
-        logging.debug("DONE. Press any key to exit.")
+        logging.debug('DONE. Press any key to exit.')
 
     getch()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     s = sched.scheduler(time.time, time.sleep)
     now = int(time.time()) / 10
     t = (now + 1) * 10
-    logging.debug("Running in %s seconds ...", t - time.time())
+    logging.debug('Running in %s seconds ...', t - time.time())
     s.enterabs(t, 0, run, ())
     s.run()

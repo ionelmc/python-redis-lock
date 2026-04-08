@@ -1,24 +1,29 @@
-# To install the git pre-commit hook run:
-#   pre-commit install
-# To update the pre-commit hooks run:
-#   pre-commit install-hooks
+# To install the git pre-commit hooks run:
+#   prek install --install-hooks --overwrite
+# To update the versions:
+#   prek autoupdate
 exclude: '^(\.tox|ci/templates|\.bumpversion\.cfg)(/|$)'
+# Note the order is intentional to avoid multiple passes of the hooks
 repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.9
+    hooks:
+      - id: ruff
+        # Using --unsafe-fixes can change code behavior
+        args: [--fix, --exit-non-zero-on-fix, --show-fixes] # , --unsafe-fixes]
+      - id: ruff-format
+  - repo: https://github.com/tombi-toml/tombi-pre-commit
+    rev: v0.9.16
+    hooks:
+      - id: tombi-format
+        # args: [ "--offline" ]
+      - id: tombi-lint
+        # args: [ "--offline" ]
+    # Should you use this offline, uncomment those args
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.3.0
+    rev: v6.0.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
+      - id: mixed-line-ending
       - id: debug-statements
-  - repo: https://github.com/timothycrosley/isort
-    rev: 5.10.1
-    hooks:
-      - id: isort
-  - repo: https://github.com/psf/black
-    rev: 22.10.0
-    hooks:
-      - id: black
-  - repo: https://github.com/pycqa/flake8
-    rev: 3.9.2
-    hooks:
-      - id: flake8

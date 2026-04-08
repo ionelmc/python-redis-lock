@@ -2,7 +2,6 @@
 Overview
 ========
 
-.. start-badges
 
 .. list-table::
     :stub-columns: 1
@@ -10,54 +9,37 @@ Overview
     * - docs
       - |docs|
     * - tests
-      - | |github-actions| |requires|
-        | |coveralls| |codecov|
+      - |github-actions| |coveralls| |codecov|
     * - package
-      - | |version| |wheel| |supported-versions| |supported-implementations|
-        | |commits-since|
+      - |version| |wheel| |supported-versions| |supported-implementations| |commits-since|
 .. |docs| image:: https://readthedocs.org/projects/python-redis-lock/badge/?style=flat
-    :target: https://python-redis-lock.readthedocs.io/
+    :target: https://readthedocs.org/projects/python-redis-lock/
     :alt: Documentation Status
-
 .. |github-actions| image:: https://github.com/ionelmc/python-redis-lock/actions/workflows/github-actions.yml/badge.svg
     :alt: GitHub Actions Build Status
     :target: https://github.com/ionelmc/python-redis-lock/actions
-
-.. |requires| image:: https://requires.io/github/ionelmc/python-redis-lock/requirements.svg?branch=master
-    :alt: Requirements Status
-    :target: https://requires.io/github/ionelmc/python-redis-lock/requirements/?branch=master
-
-.. |coveralls| image:: https://coveralls.io/repos/ionelmc/python-redis-lock/badge.svg?branch=master&service=github
+.. |coveralls| image:: https://coveralls.io/repos/github/ionelmc/python-redis-lock/badge.svg?branch=master
     :alt: Coverage Status
-    :target: https://coveralls.io/r/ionelmc/python-redis-lock
-
+    :target: https://coveralls.io/github/ionelmc/python-redis-lock?branch=master
 .. |codecov| image:: https://codecov.io/gh/ionelmc/python-redis-lock/branch/master/graphs/badge.svg?branch=master
     :alt: Coverage Status
-    :target: https://codecov.io/github/ionelmc/python-redis-lock
-
+    :target: https://app.codecov.io/github/ionelmc/python-redis-lock
 .. |version| image:: https://img.shields.io/pypi/v/python-redis-lock.svg
     :alt: PyPI Package latest release
     :target: https://pypi.org/project/python-redis-lock
-
 .. |wheel| image:: https://img.shields.io/pypi/wheel/python-redis-lock.svg
     :alt: PyPI Wheel
     :target: https://pypi.org/project/python-redis-lock
-
 .. |supported-versions| image:: https://img.shields.io/pypi/pyversions/python-redis-lock.svg
     :alt: Supported versions
     :target: https://pypi.org/project/python-redis-lock
-
 .. |supported-implementations| image:: https://img.shields.io/pypi/implementation/python-redis-lock.svg
     :alt: Supported implementations
     :target: https://pypi.org/project/python-redis-lock
-
 .. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/python-redis-lock/v4.0.0.svg
     :alt: Commits since latest release
     :target: https://github.com/ionelmc/python-redis-lock/compare/v4.0.0...master
 
-
-
-.. end-badges
 
 Lock context manager implemented via redis SETNX/BLPOP.
 

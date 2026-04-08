@@ -1,6 +1,3 @@
-from __future__ import division
-from __future__ import print_function
-
 import logging
 import os
 import sys
@@ -15,7 +12,7 @@ from config import TIMEOUT
 
 if __name__ == '__main__':
     logging.basicConfig(
-        level=logging.DEBUG, format='%(process)d %(asctime)s,%(msecs)05d %(name)s %(levelname)s %(message)s', datefmt="%x~%X"
+        level=logging.DEBUG, format='%(process)d %(asctime)s,%(msecs)05d %(name)s %(levelname)s %(message)s', datefmt='%x~%X'
     )
     redis_socket = sys.argv[1]
     test_name = sys.argv[2]
@@ -35,26 +32,26 @@ if __name__ == '__main__':
     logging.info('threading.get_ident.__module__=%s', threading.get_ident.__module__)
     if test_name == 'test_simple':
         conn = StrictRedis(unix_socket_path=redis_socket)
-        with Lock(conn, "foobar"):
+        with Lock(conn, 'foobar'):
             time.sleep(0.1)
     elif test_name == 'test_simple_auto_renewal':
         conn = StrictRedis(unix_socket_path=redis_socket)
-        with Lock(conn, "foobar", expire=1, auto_renewal=True) as lock:
+        with Lock(conn, 'foobar', expire=1, auto_renewal=True) as lock:
             time.sleep(2)
     elif test_name == 'test_no_block':
         conn = StrictRedis(unix_socket_path=redis_socket)
-        lock = Lock(conn, "foobar")
+        lock = Lock(conn, 'foobar')
         res = lock.acquire(blocking=False)
-        logging.info("acquire=>%s", res)
+        logging.info('acquire=>%s', res)
     elif test_name == 'test_timeout':
         conn = StrictRedis(unix_socket_path=redis_socket)
-        with Lock(conn, "foobar"):
+        with Lock(conn, 'foobar'):
             time.sleep(1)
     elif test_name == 'test_expire':
         conn = StrictRedis(unix_socket_path=redis_socket)
-        with Lock(conn, "foobar", expire=TIMEOUT / 4):
+        with Lock(conn, 'foobar', expire=TIMEOUT / 4):
             time.sleep(0.1)
-        with Lock(conn, "foobar", expire=TIMEOUT / 4):
+        with Lock(conn, 'foobar', expire=TIMEOUT / 4):
             time.sleep(0.1)
     elif test_name == 'test_no_overlap':
         from sched import scheduler
@@ -66,7 +63,7 @@ if __name__ == '__main__':
         # that time all the forks should be ready
 
         def cb_no_overlap():
-            with Lock(conn, "foobar"):
+            with Lock(conn, 'foobar'):
                 time.sleep(0.001)
 
         sched.enterabs(start, 0, cb_no_overlap, ())
