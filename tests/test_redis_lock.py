@@ -12,8 +12,8 @@ import pytest
 from process_tests import TestProcess
 from process_tests import dump_on_error
 from process_tests import wait_for_strings
-from redis import StrictRedis
 
+import redis_lock
 from redis_lock import AlreadyAcquired
 from redis_lock import InvalidTimeout
 from redis_lock import Lock
@@ -39,14 +39,21 @@ def maybe_decode(data):
 
 
 @pytest.fixture(params=[True, False], ids=['decode_responses=True', 'decode_responses=False'])
-def make_conn_plain(request, redis_server, redis_socket):
+def make_conn_plain(request, redis_server,redis_class, redis_socket):
     def conn_factory(**options):
         options.setdefault('encoding_errors', 'replace')
-        conn = StrictRedis(unix_socket_path=redis_socket, **options)
+        conn = redis_class(unix_socket_path=redis_socket, **options)
         request.addfinalizer(conn.flushdb)
         return conn
 
     return conn_factory
+
+
+@pytest.fixture(params=['redis.StrictRedis', 'valkey.Valkey'])
+def redis_class(request):
+    mod, klass = request.param.rsplit('.', 1)
+    redis_lock.reset_all_script = None
+    return getattr(pytest.importorskip(mod), klass)
 
 
 @pytest.fixture(params=[True, False], ids=['decode_responses=True', 'decode_responses=False'])
@@ -409,9 +416,9 @@ def test_no_overlap(redis_server, redis_socket):
                             raise
 
 
-def _no_overlap2_workerfn(redis_socket, event, count_lock, count):
+def _no_overlap2_workerfn(redis_socket, redis_class, event, count_lock, count):
     logging.basicConfig(level=logging.DEBUG)
-    with StrictRedis(unix_socket_path=redis_socket) as conn:
+    with redis_class(unix_socket_path=redis_socket) as conn:
         redis_lock = Lock(conn, 'lock')
 
         with count_lock:
@@ -425,14 +432,14 @@ def _no_overlap2_workerfn(redis_socket, event, count_lock, count):
 
 
 @skipifpypy(reason='way too slow to run on PyPy')
-def test_no_overlap2(make_process, redis_server, redis_socket):
+def test_no_overlap2(make_process, redis_class, redis_server, redis_socket):
     """The second version of contention test, that uses multiprocessing."""
     event = multiprocessing.Event()
     count_lock = multiprocessing.Lock()
     count = multiprocessing.Value('H', 0)
 
     for _ in range(125):
-        make_process(target=_no_overlap2_workerfn, args=(redis_socket, event, count_lock, count)).start()
+        make_process(target=_no_overlap2_workerfn, args=(redis_socket,redis_class, event, count_lock, count)).start()
 
     # Wait until all workers will come to point when they are ready to acquire
     # the redis lock.

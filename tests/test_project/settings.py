@@ -75,5 +75,9 @@ CACHES = {
     'default': {
         'BACKEND': 'redis_lock.django_cache.RedisCache',
         'LOCATION': f'unix://{REDIS_SOCKET}',
+    },
+    'valkey': {
+        'BACKEND': 'redis_lock.django_valkey_cache.ValkeyCache',
+        'LOCATION': f'unix://{REDIS_SOCKET}',
     }
 }

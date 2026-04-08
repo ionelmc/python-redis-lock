@@ -13,7 +13,7 @@ class RedisCache(PlainRedisCache):
         except Exception as exc:
             raise NotImplementedError(
                 f"RedisCache doesn't have a raw client: {exc}. Use 'redis_cache.client.DefaultClient' as the CLIENT_CLASS !"
-            )
+            ) from exc
 
     def lock(self, key, expire=None, id=None, auto_renewal=False):
         return Lock(self.__client, key, expire=expire, id=id, auto_renewal=auto_renewal)

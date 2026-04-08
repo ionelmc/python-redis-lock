@@ -5,8 +5,6 @@ from logging import getLogger
 from os import urandom
 from typing import Union
 
-from redis import StrictRedis
-
 __version__ = '4.0.1'
 
 logger_for_acquire = getLogger(f'{__name__}.acquire')
@@ -136,8 +134,6 @@ class Lock:
             Boolean value specifying whether lock should be blocking or not.
             Used in `__enter__` method.
         """
-        if strict and not isinstance(redis_client, StrictRedis):
-            raise ValueError("redis_client must be instance of StrictRedis. Use strict=False if you know what you're doing.")
         if auto_renewal and expire is None:
             raise ValueError('Expire may not be None when auto_renewal is set')
 

@@ -2,6 +2,12 @@
 Changelog
 =========
 
+v4.1.0 (todo)
+-------------
+
+* Dropped support for EOL Python 3.7, 3.8 and 3.9. Minimum version is 3.10.
+* Added support for `valkey <https://pypi.org/project/valkey/>`_ and `django-valkey <https://pypi.org/project/django-valkey/>`_.
+
 v4.0.1 (2026-04-08)
 -------------------
 
