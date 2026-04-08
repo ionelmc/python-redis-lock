@@ -36,9 +36,9 @@ Overview
 .. |supported-implementations| image:: https://img.shields.io/pypi/implementation/python-redis-lock.svg
     :alt: Supported implementations
     :target: https://pypi.org/project/python-redis-lock
-.. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/python-redis-lock/v4.0.0.svg
+.. |commits-since| image:: https://img.shields.io/github/commits-since/ionelmc/python-redis-lock/v4.0.1.svg
     :alt: Commits since latest release
-    :target: https://github.com/ionelmc/python-redis-lock/compare/v4.0.0...master
+    :target: https://github.com/ionelmc/python-redis-lock/compare/v4.0.1...master
 
 
 Lock context manager implemented via redis SETNX/BLPOP.
