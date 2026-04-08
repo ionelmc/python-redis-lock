@@ -3,7 +3,6 @@ import weakref
 from base64 import b64encode
 from logging import getLogger
 from os import urandom
-from typing import Union
 
 __version__ = '4.0.1'
 
@@ -100,7 +99,7 @@ class Lock:
     blocking = None
 
     _lock_renewal_interval: float
-    _lock_renewal_thread: Union[threading.Thread, None]
+    _lock_renewal_thread: threading.Thread | None
 
     def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, signal_expire=1000, blocking=True):
         """
