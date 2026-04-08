@@ -34,9 +34,6 @@ classifiers = [
     # "Programming Language :: Python :: Implementation :: Stackless",
     "Topic :: Utilities",
 ]
-dependencies = [
-    "redis>=2.10.0",
-]
 dynamic = [
     "readme",
 ]
@@ -51,6 +48,12 @@ dynamic = [
     # rst = ["docutils>=0.11"]
     django = [
         "django-redis>=3.8.0",
+    ]
+    redis = [
+        "redis>=2.10.0",
+    ]
+    valkey = [
+        "valkey",
     ]
 
 [build-system]

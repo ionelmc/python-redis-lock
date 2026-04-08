@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
             eventlet.monkey_patch()
         else:
-            raise RuntimeError('Invalid effect spec %r.' % effect)
+            raise RuntimeError(f'Invalid effect spec {effect!r}.')
     logging.info('threading.get_ident.__module__=%s', threading.get_ident.__module__)
     if test_name == 'test_simple':
         conn = StrictRedis(unix_socket_path=redis_socket)
@@ -82,5 +82,5 @@ if __name__ == '__main__':
         for pid in pids:
             os.waitpid(pid, 0)
     else:
-        raise RuntimeError('Invalid test spec %r.' % test_name)
+        raise RuntimeError(f'Invalid test spec {test_name!r}.')
     logging.info('DIED.')

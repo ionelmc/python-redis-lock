@@ -76,7 +76,7 @@ for concurrency in (1, 2, 3, 6, 12, 24, 48):
                 t = round(time.time()) + 1
                 load = [(t, duration, type_) for _ in range(concurrency)]
                 logging.info('Running %s', load)
-                ret = [i for i in pool.map(test, load)]
+                ret = list(pool.map(test, load))
             if concurrency > 1:
                 logging.critical(
                     '%14s %12.3fs %11s %20s %10.2f %10s %10s',

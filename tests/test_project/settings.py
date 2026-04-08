@@ -13,14 +13,11 @@ import os
 
 REDIS_SOCKET = os.environ['REDIS_SOCKET']
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/dev/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '+ln!mmswhbemdn@*v8sbic_n+i&j4+ct8(n=y09s81c)7fyyf2'
+SECRET_KEY = '+ln!mmswhbemdn@*v8sbic_n+i&j4+ct8(n=y09s81c)7fyyf2'  # noqa: S105
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -79,5 +76,5 @@ CACHES = {
     'valkey': {
         'BACKEND': 'redis_lock.django_valkey_cache.ValkeyCache',
         'LOCATION': f'unix://{REDIS_SOCKET}',
-    }
+    },
 }

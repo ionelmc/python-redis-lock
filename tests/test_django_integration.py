@@ -2,6 +2,8 @@ import os
 
 import pytest
 
+import redis_lock
+
 try:
     import django
 except ImportError:
@@ -14,6 +16,7 @@ else:
 def redis_socket_static(tmpdir_factory):
     path = str(tmpdir_factory.getbasetemp() / 'redis.sock')
     os.environ['REDIS_SOCKET'] = path
+    redis_lock.reset_all_script = None
     return path
 
 
@@ -37,7 +40,7 @@ def test_django_add_or_set_locked(redis_server):
         return None
 
     def assert_false_creator():
-        assert False
+        raise AssertionError
 
     assert cache.locked_get_or_set('foobar-aosl', creator_42) == 42
     assert cache.locked_get_or_set('foobar-aosl', assert_false_creator) == 42
@@ -47,7 +50,7 @@ def test_django_add_or_set_locked(redis_server):
     except ValueError:
         pass
     else:
-        assert False
+        raise AssertionError
 
 
 @pytest.mark.skipif('not django')

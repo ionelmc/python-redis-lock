@@ -15,10 +15,10 @@ except ImportError:
     # Probably Windows.
     try:
         import msvcrt
-    except ImportError:
+    except ImportError as exc:
         # FIXME what to do on other platforms?
         # Just give up here.
-        raise ImportError('getch not available')
+        raise ImportError('getch not available') from exc
     else:
         getch = msvcrt.getch
 else:

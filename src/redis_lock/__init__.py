@@ -102,7 +102,7 @@ class Lock:
     _lock_renewal_interval: float
     _lock_renewal_thread: Union[threading.Thread, None]
 
-    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, strict=True, signal_expire=1000, blocking=True):
+    def __init__(self, redis_client, name, expire=None, id=None, auto_renewal=False, signal_expire=1000, blocking=True):
         """
         :param redis_client:
             An instance of :class:`~StrictRedis`.
@@ -126,8 +126,6 @@ class Lock:
             an interval of ``expire*2/3``. If wishing to use a different renewal
             time, subclass Lock, call ``super().__init__()`` then set
             ``self._lock_renewal_interval`` to your desired interval.
-        :param strict:
-            If set ``True`` then the ``redis_client`` needs to be an instance of ``redis.StrictRedis``.
         :param signal_expire:
             Advanced option to override signal list expiration in milliseconds. Increase it for very slow clients. Default: ``1000``.
         :param blocking:
